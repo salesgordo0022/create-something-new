@@ -10,20 +10,28 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
+const DEMO_USER: Usuario = {
+  id: "demo-user-id",
+  email: "admin@contabilidade.com",
+  nome: "Administrador",
+  cargo: "Admin Master",
+};
+
 const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
+  user: DEMO_USER,
+  loading: false,
   signIn: async () => ({}),
   signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<Usuario | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<Usuario | null>(DEMO_USER);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     if (!isConfigured) {
+      setUser(DEMO_USER);
       setLoading(false);
       return;
     }
@@ -31,15 +39,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         loadUser(session.user.id);
       } else {
+        setUser(DEMO_USER);
         setLoading(false);
       }
-    }).catch(() => setLoading(false));
+    }).catch(() => {
+      setUser(DEMO_USER);
+      setLoading(false);
+    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         loadUser(session.user.id);
       } else {
-        setUser(null);
+        setUser(DEMO_USER);
         setLoading(false);
       }
     });
@@ -54,14 +66,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("id", authId)
         .single();
       if (data) setUser(data);
+      else setUser(DEMO_USER);
     } catch {
-      // ignore
+      setUser(DEMO_USER);
     }
     setLoading(false);
   }
 
   async function signIn(email: string, password: string) {
-    if (!isConfigured) return { error: "Supabase não configurado. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY." };
+    if (!isConfigured) return { error: "Supabase não configurado" };
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     const { data: { session } } = await supabase.auth.getSession();
@@ -77,9 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
-    await supabase.auth.signOut();
-    setUser(null);
-    router.navigate({ to: "/login" });
+    setUser(DEMO_USER);
   }
 
   return (
