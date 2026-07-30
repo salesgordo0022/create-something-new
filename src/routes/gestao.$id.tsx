@@ -236,7 +236,7 @@ function ProdutorPage() {
                 {[
                   { label: "Tipo", value: produtor.tipo, color: "text-emerald-600", bg: "bg-emerald-50" },
                   { label: "Atividade", value: produtor.atividade_principal, color: "text-amber-600", bg: "bg-amber-50" },
-                  { label: "Campos Respondidos", value: `${totalRespondidos}/${totalCampos}`, color: "text-blue-600", bg: "bg-blue-50" },
+                  { label: "Campos Respondidos", value: `${totalRespondidas}/${totalCampos}`, color: "text-blue-600", bg: "bg-blue-50" },
                   { label: "Status", value: produtor.status_preenchimento, color: "text-gray-600", bg: "bg-gray-100" },
                 ].map(s => (
                   <div key={s.label} className="bg-white rounded-2xl agro-shadow-md border border-gray-100 p-5 card-hover">
