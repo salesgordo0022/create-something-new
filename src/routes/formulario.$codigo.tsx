@@ -136,41 +136,41 @@ function FormularioPage() {
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#f2efe8' }}>
       <div className="text-center">
-        <div className="w-14 h-14 rounded-2xl agro-gradient animate-pulse mx-auto shadow-lg shadow-[#0d4f1a]/10" />
-        <p className="mt-4 text-gray-500 font-medium">Carregando formulário...</p>
+        <div className="w-16 h-16 rounded-2xl agro-gradient animate-pulse mx-auto shadow-xl shadow-[#0d4f1a]/10" />
+        <p className="mt-6 text-gray-500 font-medium text-lg">Carregando formulário...</p>
       </div>
     </div>
   );
 
   if (erro) return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#f2efe8' }}>
-      <div className="bg-white rounded-2xl agro-shadow-xl border border-gray-100 p-8 max-w-md w-full text-center">
-        <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: '#f2efe8' }}>
+      <div className="bg-white rounded-3xl agro-shadow-xl border border-gray-100 p-10 max-w-md w-full text-center">
+        <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-6">
+          <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Link inválido</h2>
-        <p className="text-gray-500 text-sm">{erro}</p>
+        <h2 className="text-2xl font-bold text-gray-800 mb-3">Link inválido</h2>
+        <p className="text-gray-500 text-base">{erro}</p>
       </div>
     </div>
   );
 
   if (enviado) return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#f2efe8' }}>
-      <div className="bg-white rounded-2xl agro-shadow-xl border border-gray-100 p-8 max-w-md w-full text-center">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#dcfce7] to-[#bbf7d0] flex items-center justify-center mx-auto mb-4">
-          <svg className="w-10 h-10 text-[#0d4f1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: '#f2efe8' }}>
+      <div className="bg-white rounded-3xl agro-shadow-xl border border-gray-100 p-10 max-w-md w-full text-center">
+        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#dcfce7] to-[#bbf7d0] flex items-center justify-center mx-auto mb-6 shadow-lg">
+          <svg className="w-12 h-12 text-[#0d4f1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Formulário Enviado!</h2>
-        <p className="text-gray-500 mb-4">Seu diagnóstico tributário foi recebido com sucesso.</p>
-        <div className="bg-gradient-to-br from-[#f2efe8] to-[#e8f5e9] rounded-xl p-5 mb-4 border border-[#0d4f1a]/10">
-          <p className="text-sm text-gray-500 mb-1">Número do protocolo</p>
-          <p className="text-lg font-bold" style={{ color: '#0d4f1a' }}>{protocolo}</p>
+        <h2 className="text-3xl font-bold text-gray-800 mb-3">Formulário Enviado!</h2>
+        <p className="text-gray-500 text-base mb-6">Seu diagnóstico tributário foi recebido com sucesso.</p>
+        <div className="bg-gradient-to-br from-[#f2efe8] to-[#e8f5e9] rounded-2xl p-6 mb-6 border border-[#0d4f1a]/10">
+          <p className="text-sm text-gray-500 mb-1.5">Número do protocolo</p>
+          <p className="text-xl font-bold" style={{ color: '#0d4f1a' }}>{protocolo}</p>
         </div>
-        <p className="text-xs text-gray-400">
+        <p className="text-sm text-gray-400">
           Data: {new Date().toLocaleString('pt-BR')}
         </p>
       </div>
@@ -182,21 +182,20 @@ function FormularioPage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#f2efe8' }}>
-      <header className="agro-gradient-warm text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 opacity-[0.08]">
-          <svg viewBox="0 0 200 200" fill="white"><path d="M100 0c55.2 0 100 44.8 100 100s-44.8 100-100 100S0 155.2 0 100 44.8 0 100 0zm0 20C55.8 20 20 55.8 20 100s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80z"/><circle cx="100" cy="100" r="30"/></svg>
-        </div>
-        <div className="max-w-4xl mx-auto px-6 py-5 relative z-10">
+      <header className="text-white relative overflow-hidden min-h-[130px]">
+        <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80" alt="Fazenda" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0d4f1a]/85 via-[#0d4f1a]/60 to-[#0d4f1a]/40" />
+        <div className="max-w-4xl mx-auto px-6 lg:px-8 py-6 lg:py-7 relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-11 h-11 rounded-xl bg-white/12 flex items-center justify-center backdrop-blur-sm border border-white/10">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-12 h-12 rounded-2xl bg-white/12 backdrop-blur-md flex items-center justify-center border border-white/15">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
               </div>
               <div>
-                <h1 className="text-base font-bold tracking-tight">Diagnóstico Tributário do Agronegócio</h1>
-                {produtor && <p className="text-white/60 text-xs mt-0.5">{produtor.nome_razao}</p>}
+                <h1 className="text-lg lg:text-xl font-bold tracking-tight">Diagnóstico Tributário do Agronegócio</h1>
+                {produtor && <p className="text-white/60 text-sm mt-0.5">{produtor.nome_razao}</p>}
               </div>
             </div>
             <div className="flex items-center gap-2 text-xs text-white/60">
@@ -208,19 +207,19 @@ function FormularioPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
+      <div className="max-w-4xl mx-auto px-4 lg:px-6 py-8 lg:py-10">
+        <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 lg:p-8 mb-8">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <span className="text-xs font-semibold tracking-wide" style={{ color: '#1a5c2a' }}>ETAPA {etapaAtual} DE 7</span>
-              <span className="text-xs text-gray-400 ml-2">— {progresso}% concluído</span>
+              <span className="text-xs font-bold tracking-widest uppercase" style={{ color: '#0d4f1a' }}>Etapa {etapaAtual} de 7</span>
+              <span className="text-xs text-gray-400 ml-3">— {progresso}% concluído</span>
             </div>
-            <span className="text-xs text-gray-500 font-medium">{etapa.icone} {etapa.nome}</span>
+            <span className="text-sm text-gray-600 font-medium">{etapa.icone} {etapa.nome}</span>
           </div>
-          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
             <div className="agro-progress-bar" style={{ width: `${progresso}%` }} />
           </div>
-          <div className="flex justify-between mt-4 px-1">
+          <div className="flex justify-between mt-6 px-1">
             {ETAPAS.map((e, i) => (
               <button key={e.id} onClick={() => i < etapaAtual - 1 && setEtapaAtual(e.id)}
                 className={`step-indicator ${i + 1 < etapaAtual ? 'step-completed' : i + 1 === etapaAtual ? 'step-active' : 'step-pending'}`}
@@ -231,7 +230,7 @@ function FormularioPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 lg:p-8 mb-6">
+        <div className="bg-white rounded-2xl agro-shadow-xl border border-gray-100 p-8 lg:p-10 mb-8">
           {etapaAtual === 1 && <Etapa1 respostas={respostas} updateField={updateField} handleMaskedInput={handleMaskedInput} getMaskOpts={getMaskOpts} />}
           {etapaAtual === 2 && <Etapa2 respostas={respostas} updateField={updateField} />}
           {etapaAtual === 3 && <Etapa3 respostas={respostas} updateField={updateField} />}
@@ -242,31 +241,31 @@ function FormularioPage() {
         </div>
 
         <div className="flex items-center justify-between gap-4">
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             {etapaAtual > 1 && (
               <button onClick={() => setEtapaAtual(prev => prev - 1)}
-                className="agro-button bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-6">
-                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                className="agro-button bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-6 py-3">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 Voltar
               </button>
             )}
-            <button onClick={() => { autoSave(); toast.success("Salvo! Você pode continuar depois."); }}
-              className="agro-button border border-gray-200 text-gray-600 hover:bg-gray-50 px-6">
-              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+            <button onClick={() => { autoSave(); toast.success("Salvo com sucesso!"); }}
+              className="agro-button border border-gray-200 text-gray-600 hover:bg-gray-50 px-6 py-3">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
               Salvar rascunho
             </button>
           </div>
           {etapaAtual < 7 ? (
             <button onClick={salvarEContinuar} disabled={salvando}
-              className="agro-button-primary px-8 py-2.5 disabled:opacity-50">
+              className="agro-button-primary px-10 py-3 disabled:opacity-50 text-base">
               {salvando ? "Salvando..." : "Salvar e continuar"}
-              {!salvando && <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>}
+              {!salvando && <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>}
             </button>
           ) : (
             <button onClick={handleEnviar} disabled={enviando || !respostas.etapa7_consentimento}
-              className="agro-button-gold px-8 py-2.5 disabled:opacity-50">
+              className="agro-button-gold px-10 py-3 disabled:opacity-50 text-base">
               {enviando ? "Enviando..." : "Enviar formulário"}
-              {!enviando && <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
+              {!enviando && <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
             </button>
           )}
         </div>
@@ -289,15 +288,15 @@ function Campo({ label, campo, respostas, updateField, type = "text", options, m
     }
   }
   return (
-    <div className="mb-4">
-      <label className="agro-label">{label}{required && <span className="text-red-500 ml-1">*</span>}</label>
+    <div className="mb-6">
+      <label className="agro-label text-sm">{label}{required && <span className="text-red-500 ml-1">*</span>}</label>
       {options ? (
-        <select className="agro-input" value={valor} onChange={onChange}>
+        <select className="agro-input py-3 px-4" value={valor} onChange={onChange}>
           <option value="">Selecione...</option>
           {options.map(o => <option key={o} value={o}>{o}</option>)}
         </select>
       ) : rows ? (
-        <textarea className="agro-input" rows={rows} value={valor} onChange={onChange} placeholder={placeholder} />
+        <textarea className="agro-input py-3 px-4" rows={rows} value={valor} onChange={onChange} placeholder={placeholder} />
       ) : (
         <input type={type} className="agro-input" value={valor} onChange={onChange} placeholder={placeholder} />
       )}

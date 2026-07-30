@@ -173,27 +173,26 @@ function GestaoPage() {
           </div>
         </header>
 
-        <main className="p-6 lg:p-8">
+        <main className="p-6 lg:p-10">
           {sidebarOpen && <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-          <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0d4f1a] via-[#1a7a2e] to-[#e8b830] p-6 lg:p-8">
-            <div className="absolute top-0 right-0 w-64 h-64 opacity-10">
-              <svg viewBox="0 0 200 200" fill="white"><path d="M100 0c55.2 0 100 44.8 100 100s-44.8 100-100 100S0 155.2 0 100 44.8 0 100 0zm0 20C55.8 20 20 55.8 20 100s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80z"/><circle cx="100" cy="100" r="30"/></svg>
-            </div>
-            <div className="relative z-10 flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <div className="mb-10 relative overflow-hidden rounded-2xl min-h-[180px] lg:min-h-[200px]">
+            <img src="https://images.unsplash.com/photo-1585515328337-5f3eb6e2f3f3?w=1200&q=80" alt="Plantação de soja" className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0d4f1a]/90 via-[#0d4f1a]/60 to-transparent" />
+            <div className="relative z-10 flex items-center gap-5 p-8 lg:p-10 min-h-[160px] lg:min-h-[180px]">
+              <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 shrink-0">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white tracking-tight">Gestão dos Diagnósticos</h1>
-                <p className="text-white/70 text-sm mt-0.5">Acompanhe e gerencie todos os diagnósticos tributários do agronegócio</p>
+                <h1 className="text-2xl lg:text-3xl font-bold text-white tracking-tight">Gestão dos Diagnósticos</h1>
+                <p className="text-white/70 text-sm lg:text-base mt-1 max-w-xl">Acompanhe e gerencie todos os diagnósticos tributários do agronegócio</p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 mb-10">
             {statsCards.map((s, i) => (
-              <div key={s.label} className="bg-white rounded-2xl agro-shadow-md border border-gray-100 p-5 card-hover hover:shadow-lg hover:-translate-y-0.5 relative overflow-hidden group">
+              <div key={s.label} className="bg-white rounded-2xl agro-shadow-md border border-gray-100 p-6 card-hover hover:shadow-lg hover:-translate-y-0.5 relative overflow-hidden group">
                 <div className={`absolute top-0 right-0 w-20 h-20 -mr-6 -mt-6 rounded-full opacity-[0.06] transition-transform group-hover:scale-150 ${i % 2 === 0 ? 'bg-[#0d4f1a]' : 'bg-[#e8b830]'}`} />
                 <p className="text-xs font-medium text-gray-500 mb-1.5 tracking-wide uppercase relative">{s.label}</p>
                 <p className={`text-3xl font-bold tracking-tight relative ${s.color}`}>{s.value}</p>
@@ -201,7 +200,7 @@ function GestaoPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
             <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#0d4f1a]/5 to-transparent rounded-full -mr-10 -mt-10" />
               <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide relative">Formulários por Status</h3>
