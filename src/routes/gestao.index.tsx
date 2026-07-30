@@ -2,7 +2,7 @@ import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "../lib/auth-context";
 import { supabase } from "../lib/supabase";
-import { getFormulariosCompletos, getEstatisticas } from "../lib/form-service";
+import { getFormulariosCompletos, getEstatisticas, criarProdutorELink, getCodigoByFormId } from "../lib/form-service";
 import { toast } from "sonner";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/gestao/")({
 });
 
 interface FormComProdutor {
-  id: string; produtor_id: string; status_preenchimento: string; status_diagnostico: string;
+  id: string; produtor_id: string; link_id?: string; status_preenchimento: string; status_diagnostico: string;
   percentual_preenchido: number; protocolo?: string; data_envio?: string;
   produtores: { nome_razao: string; cpf_cnpj?: string; municipio?: string; estado?: string; atividade_principal?: string; tipo?: string };
 }
@@ -39,11 +39,17 @@ function GestaoPage() {
   const [filtroNome, setFiltroNome] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("");
+  const [modalAberto, setModalAberto] = useState(false);
+  const [criando, setCriando] = useState(false);
+  const [linkGerado, setLinkGerado] = useState("");
+  const [novoForm, setNovoForm] = useState({
+    nome_razao: "", cpf_cnpj: "", email: "", telefone: "",
+    municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física",
+  });
 
   useEffect(() => {
-    if (!authLoading && !user) { router.navigate({ to: "/login" }); return; }
     if (user) loadData();
-  }, [user, authLoading]);
+  }, [user]);
 
   async function loadData() {
     setLoading(true);
@@ -53,15 +59,37 @@ function GestaoPage() {
     setLoading(false);
   }
 
-  async function copyLink(formId: string) {
-    const { data } = await supabase.from('formularios').select('link_id').eq('id', formId).single();
-    if (data) {
-      const { data: link } = await supabase.from('links_formulario').select('codigo').eq('id', data.link_id).single();
-      if (link) {
-        await navigator.clipboard.writeText(`${window.location.origin}/formulario/${link.codigo}`);
-        toast.success("Link copiado!");
-      }
+  async function handleCriar() {
+    if (!novoForm.nome_razao.trim()) { toast.error("Informe o nome do produtor"); return; }
+    setCriando(true);
+    try {
+      const result = await criarProdutorELink(novoForm);
+      const link = `${window.location.origin}/formulario/${result.codigo}`;
+      setLinkGerado(link);
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copiado!");
+      loadData();
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao criar");
     }
+    setCriando(false);
+  }
+
+  async function copyLink(formId: string, produtorId: string) {
+    const codigo = await getCodigoByFormId(formId, produtorId);
+    if (codigo) {
+      const link = `${window.location.origin}/formulario/${codigo}`;
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copiado!");
+    } else {
+      toast.error("Link não encontrado");
+    }
+  }
+
+  function resetModal() {
+    setModalAberto(false);
+    setLinkGerado("");
+    setNovoForm({ nome_razao: "", cpf_cnpj: "", email: "", telefone: "", municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física" });
   }
 
   if (authLoading || loading) return (
@@ -125,13 +153,19 @@ function GestaoPage() {
       </aside>
 
       <div className="flex-1 min-h-screen">
-        <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between lg:justify-end sticky top-0 z-40">
+        <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
           <button className="lg:hidden" onClick={() => setSidebarOpen(!sidebarOpen)}>
             <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
-          <div className="relative">
-            <input className="agro-input py-2 pl-9 pr-4 text-sm w-64" placeholder="Buscar produtor..." value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
-            <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <input className="agro-input py-2 pl-9 pr-4 text-sm w-64" placeholder="Buscar produtor..." value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
+              <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+            <button onClick={() => setModalAberto(true)} className="agro-button px-4 py-2 text-sm flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Novo Diagnóstico
+            </button>
           </div>
         </header>
 
@@ -205,6 +239,7 @@ function GestaoPage() {
                     <th className="px-4 py-3 font-medium text-gray-600">Atividade</th>
                     <th className="px-4 py-3 font-medium text-gray-600">Status</th>
                     <th className="px-4 py-3 font-medium text-gray-600">%</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Link</th>
                     <th className="px-4 py-3 font-medium text-gray-600">Ações</th>
                   </tr>
                 </thead>
@@ -231,17 +266,97 @@ function GestaoPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
+                        <button onClick={() => copyLink(f.id, f.produtor_id)} className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors" style={{ color: '#c9a84c', background: '#fdf6e3' }}>
+                          Copiar Link
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">
                         <Link to={`/gestao/${f.id}`} className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors" style={{ color: '#1a5c2a', background: '#e8f5e9' }}>Visualizar</Link>
                       </td>
                     </tr>
                   ))}
-                  {formsFiltrados.length === 0 && <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Nenhum formulário encontrado</td></tr>}
+                  {formsFiltrados.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Nenhum formulário encontrado</td></tr>}
                 </tbody>
               </table>
             </div>
           </div>
         </main>
       </div>
+
+      {modalAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={resetModal}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-800">Novo Diagnóstico</h2>
+              <button onClick={resetModal} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+            {linkGerado ? (
+              <div className="p-6 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <p className="font-medium text-gray-800">Link gerado com sucesso!</p>
+                <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 break-all">{linkGerado}</div>
+                <p className="text-xs text-gray-400">O link foi copiado para sua área de transferência. Envie para o produtor preencher o formulário.</p>
+                <button onClick={resetModal} className="agro-button px-6 py-2 text-sm">OK</button>
+              </div>
+            ) : (
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Nome / Razão Social *</label>
+                    <input className="agro-input py-2 px-3 text-sm w-full" value={novoForm.nome_razao} onChange={e => setNovoForm(p => ({ ...p, nome_razao: e.target.value }))} placeholder="Nome completo ou razão social" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">CPF/CNPJ</label>
+                    <input className="agro-input py-2 px-3 text-sm w-full" value={novoForm.cpf_cnpj} onChange={e => setNovoForm(p => ({ ...p, cpf_cnpj: e.target.value }))} placeholder="000.000.000-00" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Tipo</label>
+                    <select className="agro-input py-2 px-3 text-sm w-full" value={novoForm.tipo} onChange={e => setNovoForm(p => ({ ...p, tipo: e.target.value }))}>
+                      <option>Pessoa Física</option>
+                      <option>Pessoa Jurídica</option>
+                      <option>Cooperativa</option>
+                      <option>Agroindústria</option>
+                      <option>Produtor Integrado</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">E-mail</label>
+                    <input className="agro-input py-2 px-3 text-sm w-full" type="email" value={novoForm.email} onChange={e => setNovoForm(p => ({ ...p, email: e.target.value }))} placeholder="email@exemplo.com" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Telefone</label>
+                    <input className="agro-input py-2 px-3 text-sm w-full" value={novoForm.telefone} onChange={e => setNovoForm(p => ({ ...p, telefone: e.target.value }))} placeholder="(11) 99999-9999" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Município</label>
+                    <input className="agro-input py-2 px-3 text-sm w-full" value={novoForm.municipio} onChange={e => setNovoForm(p => ({ ...p, municipio: e.target.value }))} placeholder="Cidade" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Estado</label>
+                    <select className="agro-input py-2 px-3 text-sm w-full" value={novoForm.estado} onChange={e => setNovoForm(p => ({ ...p, estado: e.target.value }))}>
+                      <option value="">Selecione</option>
+                      {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(u => <option key={u} value={u}>{u}</option>)}
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Atividade Principal</label>
+                    <input className="agro-input py-2 px-3 text-sm w-full" value={novoForm.atividade_principal} onChange={e => setNovoForm(p => ({ ...p, atividade_principal: e.target.value }))} placeholder="Ex: Soja, Pecuária, Leite..." />
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button onClick={resetModal} className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
+                  <button onClick={handleCriar} disabled={criando} className="flex-1 agro-button py-2.5 px-4 text-sm flex items-center justify-center gap-2">
+                    {criando && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.37 0 0 5.37 0 12h4z" /></svg>}
+                    Gerar Link
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
