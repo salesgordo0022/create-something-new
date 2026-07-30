@@ -22,13 +22,18 @@ const DEMO_FORMULARIOS = [
   { id: "demo-8", produtor_id: "demo-p8", link_id: "demo-l8", status_preenchimento: "em_preenchimento", status_diagnostico: "pendente", percentual_preenchido: 60, produtores: { nome_razao: "José Pereira Oliveira", cpf_cnpj: "111.222.333-44", municipio: "Passo Fundo", estado: "RS", atividade_principal: "Suinocultura", tipo: "Pessoa Física" } },
 ];
 
+const DEMO_PRODUTOR_PADRAO = { nome_razao: "Produtor Rural", cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física" };
+
 export async function getFormularioByCodigo(codigo: string) {
   if (!isConfigured) {
     const entry = Object.entries(DEMO_CODIGOS).find(([, c]) => c === codigo);
-    if (!entry) return null;
-    const form = DEMO_FORMULARIOS.find(f => f.produtor_id === entry[0]);
-    if (!form) return null;
-    return { link: { codigo, status: "ativo" }, produtor: form.produtores, formulario: { id: form.id, produtor_id: form.produtor_id, status_preenchimento: form.status_preenchimento }, respostas: [] };
+    if (entry) {
+      const form = DEMO_FORMULARIOS.find(f => f.produtor_id === entry[0]);
+      if (form) return { link: { codigo, status: "ativo" }, produtor: form.produtores, formulario: { id: form.id, produtor_id: form.produtor_id, status_preenchimento: form.status_preenchimento }, respostas: [] };
+    }
+    const existing = DEMO_FORMULARIOS.find(f => f.id === codigo || f.link_id === codigo);
+    if (existing) return { link: { codigo, status: "ativo" }, produtor: existing.produtores, formulario: { id: existing.id, produtor_id: existing.produtor_id, status_preenchimento: existing.status_preenchimento }, respostas: [] };
+    return { link: { codigo, status: "ativo" }, produtor: DEMO_PRODUTOR_PADRAO, formulario: { id: `demo-${codigo}`, produtor_id: "demo-new", status_preenchimento: "em_preenchimento" }, respostas: [] };
   }
   const { data: link, error } = await supabase
     .from("links_formulario")
