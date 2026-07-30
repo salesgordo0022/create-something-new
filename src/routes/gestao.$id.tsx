@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useAuth } from "../lib/auth-context";
 import { supabase, isConfigured } from "../lib/supabase";
 import { getRespostas, getFormulariosCompletos } from "../lib/form-service";
@@ -113,6 +113,8 @@ function ProdutorPage() {
   const [loading, setLoading] = useState(true);
   const [abaAtiva, setAbaAtiva] = useState("resumo");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [termoBusca, setTermoBusca] = useState("");
+  const [secaoAtiva, setSecaoAtiva] = useState<string | null>(null);
 
   useEffect(() => { loadData(); }, [id]);
 
@@ -158,13 +160,49 @@ function ProdutorPage() {
 
   const totalRespondidas = SECOES.flatMap(s => s.campos).filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
   const totalCampos = SECOES.flatMap(s => s.campos).length;
-  const pct = Math.round((totalRespondidas / totalCampos) * 100);
+  const pct = totalCampos > 0 ? Math.round((totalRespondidas / totalCampos) * 100) : 0;
+
+  const termo = termoBusca.toLowerCase().trim();
+
+  function matchField(c: { campo: string; label: string; format?: string }): boolean {
+    if (!termo) return true;
+    const valor = String(respMap[c.campo] || "").toLowerCase();
+    return c.label.toLowerCase().includes(termo) || valor.includes(termo);
+  }
+
+  function matchSecao(sec: typeof SECOES[number]): boolean {
+    if (!termo) return true;
+    return sec.titulo.toLowerCase().includes(termo) || sec.campos.some(matchField);
+  }
+
+  function highlightText(text: string): ReactNode {
+    if (!termo || !text) return text;
+    const idx = text.toLowerCase().indexOf(termo);
+    if (idx === -1) return text;
+    return (
+      <>
+        {text.slice(0, idx)}
+        <mark className="bg-yellow-200 text-gray-900 rounded px-0.5">{text.slice(idx, idx + termo.length)}</mark>
+        {text.slice(idx + termo.length)}
+      </>
+    );
+  }
 
   const abas = [
     { id: "resumo", label: "Resumo" },
     { id: "respostas", label: "Respostas" },
     { id: "diagnostico", label: "Diagnóstico" },
   ];
+
+  const statusBadge = (status?: string) => {
+    const map: Record<string, { label: string; cls: string }> = {
+      concluido: { label: "Concluído", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+      em_preenchimento: { label: "Em preenchimento", cls: "bg-amber-50 text-amber-700 border-amber-200" },
+      pendente: { label: "Pendente", cls: "bg-gray-50 text-gray-500 border-gray-200" },
+    };
+    const s = map[status || ""] || { label: status || "—", cls: "bg-gray-50 text-gray-500 border-gray-200" };
+    return <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${s.cls}`}>{s.label}</span>;
+  };
 
   return (
     <div className="min-h-screen flex" style={{ background: '#f2efe8' }}>
@@ -182,41 +220,67 @@ function ProdutorPage() {
             </div>
           </div>
         </div>
-        <nav className="p-3">
+        <nav className="p-3 space-y-1">
           <Link to="/gestao" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:bg-white/5 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
             Voltar
           </Link>
+          <div className="pt-4 border-t border-white/10">
+            <p className="px-4 text-xs text-white/40 font-semibold uppercase tracking-wider mb-2">Seções</p>
+            {SECOES.map(sec => {
+              const preenchidos = sec.campos.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
+              const highlight = termo && matchSecao(sec);
+              if (termo && !highlight) return null;
+              return (
+                <button key={sec.id} onClick={() => { setSecaoAtiva(sec.id); setAbaAtiva("resumo"); document.getElementById(`sec-${sec.id}`)?.scrollIntoView({ behavior: 'smooth' }); }}
+                  className="flex items-center gap-3 w-full px-4 py-2 rounded-xl text-white/60 hover:bg-white/5 transition-colors text-left">
+                  <span className="text-base">{sec.icone}</span>
+                  <span className="text-sm truncate">{sec.titulo}</span>
+                  <span className="ml-auto text-xs text-white/30">{preenchidos}/{sec.campos.length}</span>
+                </button>
+              );
+            })}
+          </div>
         </nav>
       </aside>
 
       <div className="flex-1 min-h-screen">
-        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/60 px-6 py-3 flex items-center justify-between sticky top-0 z-40">
-          <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/60 px-6 py-3 flex items-center justify-between sticky top-0 z-40 gap-4">
+          <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0" onClick={() => setSidebarOpen(!sidebarOpen)}>
             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full agrogradient flex items-center justify-center text-white text-sm font-bold">{produtor.nome_razao?.charAt(0)}</div>
-            <div>
-              <h1 className="text-lg font-bold text-gray-900 tracking-tight">{produtor.nome_razao}</h1>
-              <p className="text-xs text-gray-500">{produtor.cpf_cnpj}{produtor.municipio ? ` • ${produtor.municipio}/${produtor.estado}` : ""}</p>
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-10 h-10 rounded-full agrogradient flex items-center justify-center text-white text-sm font-bold shrink-0">{produtor.nome_razao?.charAt(0)}</div>
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold text-gray-900 tracking-tight truncate">{produtor.nome_razao}</h1>
+              <p className="text-xs text-gray-500 truncate">{produtor.cpf_cnpj}{produtor.municipio ? ` • ${produtor.municipio}/${produtor.estado}` : ""}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 text-xs">
-              <span className="text-gray-400">Preenchimento:</span>
-              <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full rounded-full bg-gradient-to-r from-[#1a5c2a] to-[#4caf50] transition-all" style={{ width: `${pct}%` }} />
-              </div>
-              <span className="font-medium text-gray-600">{pct}%</span>
+          <div className="flex items-center gap-3 ml-auto">
+            <div className="relative w-48 lg:w-64">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <input type="text" placeholder="Pesquisar perguntas..." value={termoBusca} onChange={e => setTermoBusca(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a5c2a]/20 focus:border-[#1a5c2a] transition-all" />
+              {termoBusca && (
+                <button onClick={() => setTermoBusca("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              )}
             </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 text-xs shrink-0">
+            <span className="text-gray-400">Preenchimento:</span>
+            <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full rounded-full bg-gradient-to-r from-[#1a5c2a] to-[#4caf50] transition-all" style={{ width: `${pct}%` }} />
+            </div>
+            <span className="font-medium text-gray-600">{pct}%</span>
           </div>
         </header>
 
         {sidebarOpen && <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
         <main className="p-6 lg:p-8 max-w-6xl mx-auto">
-          <div className="border-b border-gray-200/80 mb-8">
+          <div className="border-b border-gray-200/80 mb-6">
             <div className="flex gap-1">
               {abas.map(aba => (
                 <button key={aba.id} onClick={() => setAbaAtiva(aba.id)}
@@ -230,52 +294,74 @@ function ProdutorPage() {
             </div>
           </div>
 
+          {termo && (
+            <div className="mb-4 text-sm text-gray-500">
+              {SECOES.filter(s => matchSecao(s)).length} seção(ões) encontrada(s) para "<strong>{termoBusca}</strong>"
+            </div>
+          )}
+
           {abaAtiva === "resumo" && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
                 {[
-                  { label: "Tipo", value: produtor.tipo, color: "text-emerald-600", bg: "bg-emerald-50" },
-                  { label: "Atividade", value: produtor.atividade_principal, color: "text-amber-600", bg: "bg-amber-50" },
-                  { label: "Campos Respondidos", value: `${totalRespondidas}/${totalCampos}`, color: "text-blue-600", bg: "bg-blue-50" },
-                  { label: "Status", value: produtor.status_preenchimento, color: "text-gray-600", bg: "bg-gray-100" },
+                  { label: "Tipo", value: produtor.tipo, color: "text-emerald-600" },
+                  { label: "Atividade", value: produtor.atividade_principal, color: "text-amber-600" },
+                  { label: "Campos", value: `${totalRespondidas}/${totalCampos}`, color: "text-blue-600" },
+                  { label: "Status", value: produtor.status_preenchimento ? statusBadge(produtor.status_preenchimento) : "—", color: "text-gray-600" },
                 ].map(s => (
-                  <div key={s.label} className="bg-white rounded-2xl agro-shadow-md border border-gray-100 p-5 card-hover">
-                    <p className="text-xs font-semibold text-gray-500 tracking-wide uppercase mb-2">{s.label}</p>
-                    <p className={`text-lg font-bold ${s.color}`}>{s.value || "—"}</p>
+                  <div key={s.label} className="bg-white rounded-2xl agro-shadow-sm border border-gray-100 p-4 card-hover">
+                    <p className="text-xs font-semibold text-gray-500 tracking-wide uppercase mb-1.5">{s.label}</p>
+                    <div className={`text-lg font-bold ${typeof s.value === 'string' ? s.color : ''}`}>{s.value || "—"}</div>
                   </div>
                 ))}
               </div>
 
-              {SECOES.map(sec => {
-                const preenchidos = sec.campos.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null);
-                if (preenchidos.length === 0) return null;
+              {SECOES.filter(sec => matchSecao(sec)).map(sec => {
+                const preenchidos = sec.campos.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
+                const camposFiltrados = termo ? sec.campos.filter(matchField) : sec.campos;
+                const temRespostaPreenchida = camposFiltrados.some(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null);
+                const expandida = secaoAtiva === sec.id || (!secaoAtiva && !termo);
                 return (
-                  <div key={sec.id} className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                  <div key={sec.id} id={`sec-${sec.id}`} className="bg-white rounded-2xl agro-shadow-sm border border-gray-100 overflow-hidden transition-all duration-200 card-hover">
+                    <button onClick={() => setSecaoAtiva(expandida ? null : sec.id)}
+                      className="w-full px-5 py-4 flex items-center gap-3 hover:bg-gray-50/50 transition-colors text-left">
                       <span className="text-lg">{sec.icone}</span>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{sec.titulo}</h3>
-                        <p className="text-xs text-gray-400">{preenchidos.length} de {sec.campos.length} respondidos</p>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 truncate">{sec.titulo}</h3>
+                        <p className="text-xs text-gray-400">{preenchidos} de {sec.campos.length} respondidos</p>
                       </div>
-                    </div>
-                    <div className="px-6 py-5">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
-                        {sec.campos.map(c => {
-                          const valor = formatValor(respMap[c.campo], c.format);
-                          if (!valor) return null;
-                          return (
-                            <div key={c.campo}>
-                              <p className="text-xs text-gray-400 mb-0.5">{c.label}</p>
-                              {["SIM", "NÃO", "sim", "não", "SIM → CONTRIBUINTE", "NÃO → NÃO CONTRIBUINTE"].includes(String(respMap[c.campo])) ? (
-                                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${getBadgeColor(String(respMap[c.campo]))}`}>{valor}</span>
-                              ) : (
-                                <p className="text-sm font-medium text-gray-800">{valor}</p>
-                              )}
-                            </div>
-                          );
-                        })}
+                      <div className="flex items-center gap-3">
+                        <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden hidden sm:block">
+                          <div className="h-full rounded-full bg-gradient-to-r from-[#1a5c2a] to-[#4caf50]" style={{ width: `${sec.campos.length > 0 ? (preenchidos / sec.campos.length) * 100 : 0}%` }} />
+                        </div>
+                        <svg className={`w-4 h-4 text-gray-400 transition-transform ${expandida ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                       </div>
-                    </div>
+                    </button>
+                    {expandida && (
+                      <div className="px-5 pb-5 border-t border-gray-50 pt-4">
+                        {temRespostaPreenchida ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3">
+                            {camposFiltrados.map(c => {
+                              const valor = formatValor(respMap[c.campo], c.format);
+                              if (!valor) return null;
+                              const isSimNao = ["SIM", "NÃO", "sim", "não", "SIM → CONTRIBUINTE", "NÃO → NÃO CONTRIBUINTE"].includes(String(respMap[c.campo]));
+                              return (
+                                <div key={c.campo} className="py-1.5">
+                                  <p className="text-xs text-gray-400 mb-0.5">{highlightText(c.label)}</p>
+                                  {isSimNao ? (
+                                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${getBadgeColor(String(respMap[c.campo]))}`}>{highlightText(valor)}</span>
+                                  ) : (
+                                    <p className="text-sm font-medium text-gray-800">{highlightText(valor)}</p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-400 italic text-center py-4">Nenhuma resposta preenchida nesta seção</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -284,37 +370,41 @@ function ProdutorPage() {
 
           {abaAtiva === "respostas" && (
             <div className="space-y-6">
-              {SECOES.map(sec => {
-                const preenchidos = sec.campos.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null);
+              {SECOES.filter(sec => matchSecao(sec)).map(sec => {
+                const preenchidos = sec.campos.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
+                const camposFiltrados = termo ? sec.campos.filter(matchField) : sec.campos;
                 return (
-                  <div key={sec.id} className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <div key={sec.id} className="bg-white rounded-2xl agro-shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{sec.icone}</span>
                         <h3 className="font-semibold text-gray-900">{sec.titulo}</h3>
+                        {termo && camposFiltrados.length < sec.campos.length && (
+                          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{camposFiltrados.length} resultados</span>
+                        )}
                       </div>
-                      <span className="text-xs text-gray-400">{preenchidos.length}/{sec.campos.length}</span>
+                      <span className="text-xs text-gray-400">{preenchidos}/{sec.campos.length}</span>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="bg-gray-50/80">
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Pergunta</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Resposta</th>
+                            <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Pergunta</th>
+                            <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Resposta</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {sec.campos.map((c, i) => {
+                          {camposFiltrados.map((c, i) => {
                             const valor = formatValor(respMap[c.campo], c.format);
                             return (
                               <tr key={c.campo} className={`${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} border-t border-gray-50`}>
-                                <td className="px-6 py-3.5 text-gray-600 font-medium">{c.label}</td>
-                                <td className="px-6 py-3.5">
+                                <td className="px-5 py-3 text-gray-600 font-medium">{highlightText(c.label)}</td>
+                                <td className="px-5 py-3">
                                   {valor ? (
                                     ["SIM", "NÃO", "sim", "não", "SIM → CONTRIBUINTE", "NÃO → NÃO CONTRIBUINTE"].includes(String(respMap[c.campo])) ? (
-                                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${getBadgeColor(String(respMap[c.campo]))}`}>{valor}</span>
+                                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${getBadgeColor(String(respMap[c.campo]))}`}>{highlightText(valor)}</span>
                                     ) : (
-                                      <span className="text-gray-800 font-medium">{valor}</span>
+                                      <span className="text-gray-800 font-medium">{highlightText(valor)}</span>
                                     )
                                   ) : (
                                     <span className="text-gray-300 italic">Não respondido</span>
