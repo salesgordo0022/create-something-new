@@ -5,7 +5,31 @@ interface ProdutorInput {
   municipio?: string; estado?: string; atividade_principal?: string; tipo?: string;
 }
 
+const DEV_FORM_STORE: Record<string, any> = {};
+
+function isDevMode() {
+  const url = import.meta.env.VITE_SUPABASE_URL || "";
+  return url === "" || url === "https://seu-projeto.supabase.co";
+}
+
 export async function getFormularioByCodigo(codigo: string) {
+  if (isDevMode()) {
+    const stored = DEV_FORM_STORE[codigo];
+    if (stored) {
+      return {
+        link: { codigo, status: "ativo" },
+        produtor: { nome_razao: stored.nome, cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física" },
+        formulario: { id: stored.formId, produtor_id: "dev", status_preenchimento: "em_preenchimento" },
+        respostas: [],
+      };
+    }
+    return {
+      link: { codigo, status: "ativo" },
+      produtor: { nome_razao: "Produtor", cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física" },
+      formulario: { id: `dev-form-${codigo}`, produtor_id: "dev", status_preenchimento: "em_preenchimento" },
+      respostas: [],
+    };
+  }
   const { data: link, error } = await supabase
     .from("links_formulario")
     .select("*, produtores(*)")
@@ -39,6 +63,7 @@ export async function getFormularioByCodigo(codigo: string) {
 }
 
 export async function salvarResposta(formularioId: string, etapa: number, campo: string, valor: any) {
+  if (isDevMode()) return;
   const { data: existing } = await supabase
     .from("respostas")
     .select("id")
@@ -59,12 +84,14 @@ export async function salvarMultiplasRespostas(formularioId: string, etapa: numb
 }
 
 export async function getRespostas(formularioId: string) {
+  if (isDevMode()) return [];
   const { data } = await supabase.from("respostas").select("*").eq("formulario_id", formularioId);
   return data || [];
 }
 
 export async function enviarFormulario(formularioId: string) {
   const protocolo = `PROT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+  if (isDevMode()) return protocolo;
   const { error } = await supabase
     .from("formularios")
     .update({ status_preenchimento: "formulario_enviado", percentual_preenchido: 100, data_envio: new Date().toISOString(), protocolo })
@@ -74,6 +101,7 @@ export async function enviarFormulario(formularioId: string) {
 }
 
 export async function getProdutores(filters?: Record<string, any>) {
+  if (isDevMode()) return [];
   let query = supabase.from("produtores").select("*, formularios(*)");
   if (filters?.nome) query = query.ilike("nome_razao", `%${filters.nome}%`);
   if (filters?.estado) query = query.eq("estado", filters.estado);
@@ -84,6 +112,20 @@ export async function getProdutores(filters?: Record<string, any>) {
 }
 
 export async function getFormulariosCompletos() {
+  if (isDevMode()) {
+    const forms = Object.values(DEV_FORM_STORE) as any[];
+    return forms.map((f: any) => ({
+      id: f.formId,
+      produtor_id: "dev",
+      link_id: `dev-link-${f.codigo}`,
+      status_preenchimento: f.status || "cadastro_criado",
+      status_diagnostico: "pendente",
+      percentual_preenchido: f.percentual || 0,
+      protocolo: null,
+      data_envio: null,
+      produtores: { nome_razao: f.nome, cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "" },
+    }));
+  }
   const { data } = await supabase
     .from("formularios")
     .select("*, produtores(*)")
@@ -92,6 +134,10 @@ export async function getFormulariosCompletos() {
 }
 
 export async function getCodigoByFormId(formId: string, _produtorId: string) {
+  if (isDevMode()) {
+    const found = Object.entries(DEV_FORM_STORE).find(([, v]: any) => v.formId === formId);
+    return found ? found[0] : null;
+  }
   const { data: form } = await supabase.from("formularios").select("link_id").eq("id", formId).single();
   if (!form) return null;
   const { data: link } = await supabase.from("links_formulario").select("codigo").eq("id", form.link_id).single();
@@ -100,6 +146,12 @@ export async function getCodigoByFormId(formId: string, _produtorId: string) {
 
 export async function criarProdutorELink(dados: ProdutorInput) {
   const codigo = `AGRO-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+  if (isDevMode()) {
+    const formId = `dev-form-${Date.now()}`;
+    DEV_FORM_STORE[codigo] = { formId, codigo, nome: dados.nome_razao || "Produtor", status: "cadastro_criado", percentual: 0 };
+    return { formId, codigo, nome: dados.nome_razao || "Produtor" };
+  }
 
   const { data: produtor, error: errProd } = await supabase
     .from("produtores")
@@ -130,6 +182,18 @@ export async function criarProdutorELink(dados: ProdutorInput) {
 }
 
 export async function getEstatisticas() {
+  if (isDevMode()) {
+    const forms = Object.values(DEV_FORM_STORE) as any[];
+    return {
+      total: forms.length,
+      porStatus: { cadastro_criado: forms.length },
+      acima3600: 0,
+      porEstado: {},
+      porAtividade: {},
+      porMes: {},
+      porReceita: { "Até R$ 3,6M": forms.length, "Acima R$ 3,6M": 0 },
+    };
+  }
   const { data: forms } = await supabase.from("formularios").select("*, produtores(*)");
   if (!forms) return {};
   const total = forms.length;
