@@ -181,33 +181,43 @@ function FormularioPage() {
   const progresso = Math.round(((etapaAtual - 1) / 7) * 100);
 
   return (
-    <div className="min-h-screen" style={{ background: '#faf8f3' }}>
-      <header className="agro-gradient text-white py-4 px-6">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold">Diagnóstico Tributário do Agronegócio</h1>
-            {produtor && <p className="text-white/70 text-sm">{produtor.nome_razao}</p>}
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-white/70">Salvando...</span>
-            {salvando && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+    <div className="min-h-screen" style={{ background: '#f2efe8' }}>
+      <header className="agro-gradient text-white">
+        <div className="max-w-4xl mx-auto px-6 py-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-base font-bold tracking-tight">Diagnóstico Tributário do Agronegócio</h1>
+                {produtor && <p className="text-white/60 text-xs mt-0.5">{produtor.nome_razao}</p>}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <span>{salvando ? 'Salvando...' : 'Salvo'}</span>
+              {salvando && <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
+              {!salvando && <svg className="w-3.5 h-3.5 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
+            </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <div className="flex items-center justify-between mb-2">
+        <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <span className="text-sm font-medium" style={{ color: '#1a5c2a' }}>Etapa {etapaAtual} de 7</span>
-              <span className="text-sm text-gray-400 ml-2">— {progresso}% concluído</span>
+              <span className="text-xs font-semibold tracking-wide" style={{ color: '#1a5c2a' }}>ETAPA {etapaAtual} DE 7</span>
+              <span className="text-xs text-gray-400 ml-2">— {progresso}% concluído</span>
             </div>
-            <span className="text-sm text-gray-500">{etapa.icone} {etapa.nome}</span>
+            <span className="text-xs text-gray-500 font-medium">{etapa.icone} {etapa.nome}</span>
           </div>
-          <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
             <div className="agro-progress-bar" style={{ width: `${progresso}%` }} />
           </div>
-          <div className="flex justify-between mt-3">
+          <div className="flex justify-between mt-4 px-1">
             {ETAPAS.map((e, i) => (
               <button key={e.id} onClick={() => i < etapaAtual - 1 && setEtapaAtual(e.id)}
                 className={`step-indicator ${i + 1 < etapaAtual ? 'step-completed' : i + 1 === etapaAtual ? 'step-active' : 'step-pending'}`}
@@ -218,7 +228,7 @@ function FormularioPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 lg:p-8 mb-6">
           {etapaAtual === 1 && <Etapa1 respostas={respostas} updateField={updateField} handleMaskedInput={handleMaskedInput} getMaskOpts={getMaskOpts} />}
           {etapaAtual === 2 && <Etapa2 respostas={respostas} updateField={updateField} />}
           {etapaAtual === 3 && <Etapa3 respostas={respostas} updateField={updateField} />}
@@ -232,25 +242,28 @@ function FormularioPage() {
           <div className="flex gap-2">
             {etapaAtual > 1 && (
               <button onClick={() => setEtapaAtual(prev => prev - 1)}
-                className="agro-button bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-6">
+                className="agro-button bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-6">
+                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 Voltar
               </button>
             )}
             <button onClick={() => { autoSave(); toast.success("Salvo! Você pode continuar depois."); }}
-              className="agro-button border border-gray-300 text-gray-600 hover:bg-gray-50 px-6"
-              style={{ background: '#faf8f3' }}>
-              Continuar depois
+              className="agro-button border border-gray-200 text-gray-600 hover:bg-gray-50 px-6">
+              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+              Salvar rascunho
             </button>
           </div>
           {etapaAtual < 7 ? (
             <button onClick={salvarEContinuar} disabled={salvando}
-              className="agro-button-primary px-8 py-3 disabled:opacity-50">
+              className="agro-button-primary px-8 py-2.5 disabled:opacity-50">
               {salvando ? "Salvando..." : "Salvar e continuar"}
+              {!salvando && <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>}
             </button>
           ) : (
             <button onClick={handleEnviar} disabled={enviando || !respostas.etapa7_consentimento}
-              className="agro-button-gold px-8 py-3 disabled:opacity-50">
+              className="agro-button-gold px-8 py-2.5 disabled:opacity-50">
               {enviando ? "Enviando..." : "Enviar formulário"}
+              {!enviando && <svg className="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
             </button>
           )}
         </div>
