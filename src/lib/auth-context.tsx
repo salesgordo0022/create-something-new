@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { supabase, isConfigured } from "./supabase";
+import { supabase } from "./supabase";
 import type { Usuario } from "./types";
 
 interface AuthContextType {
@@ -10,40 +10,27 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-const DEMO_USER: Usuario = {
-  id: "demo-user-id",
-  email: "admin@contabilidade.com",
-  nome: "Administrador",
-  cargo: "Admin Master",
-};
-
 const AuthContext = createContext<AuthContextType>({
-  user: DEMO_USER,
+  user: null,
   loading: false,
   signIn: async () => ({}),
   signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<Usuario | null>(DEMO_USER);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [user, setUser] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isConfigured) {
-      setUser(DEMO_USER);
-      setLoading(false);
-      return;
-    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         loadUser(session.user.id);
       } else {
-        setUser(DEMO_USER);
+        setUser(null);
         setLoading(false);
       }
     }).catch(() => {
-      setUser(DEMO_USER);
+      setUser(null);
       setLoading(false);
     });
 
@@ -51,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         loadUser(session.user.id);
       } else {
-        setUser(DEMO_USER);
+        setUser(null);
         setLoading(false);
       }
     });
@@ -66,15 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("id", authId)
         .single();
       if (data) setUser(data);
-      else setUser(DEMO_USER);
+      else setUser(null);
     } catch {
-      setUser(DEMO_USER);
+      setUser(null);
     }
     setLoading(false);
   }
 
   async function signIn(email: string, password: string) {
-    if (!isConfigured) return { error: "Supabase não configurado" };
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     const { data: { session } } = await supabase.auth.getSession();
@@ -90,7 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
-    setUser(DEMO_USER);
+    await supabase.auth.signOut();
+    setUser(null);
   }
 
   return (

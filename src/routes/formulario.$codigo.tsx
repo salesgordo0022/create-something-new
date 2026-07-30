@@ -134,17 +134,17 @@ function FormularioPage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#faf8f3' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#f2efe8' }}>
       <div className="text-center">
-        <div className="w-12 h-12 rounded-full agro-gradient animate-pulse mx-auto" />
-        <p className="mt-4 text-gray-500">Carregando formulário...</p>
+        <div className="w-14 h-14 rounded-2xl agro-gradient animate-pulse mx-auto shadow-lg shadow-[#0d4f1a]/10" />
+        <p className="mt-4 text-gray-500 font-medium">Carregando formulário...</p>
       </div>
     </div>
   );
 
   if (erro) return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#faf8f3' }}>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#f2efe8' }}>
+      <div className="bg-white rounded-2xl agro-shadow-xl border border-gray-100 p-8 max-w-md w-full text-center">
         <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -157,18 +157,18 @@ function FormularioPage() {
   );
 
   if (enviado) return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#faf8f3' }}>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
-        <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
-          <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#f2efe8' }}>
+      <div className="bg-white rounded-2xl agro-shadow-xl border border-gray-100 p-8 max-w-md w-full text-center">
+        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#dcfce7] to-[#bbf7d0] flex items-center justify-center mx-auto mb-4">
+          <svg className="w-10 h-10 text-[#0d4f1a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Formulário Enviado!</h2>
         <p className="text-gray-500 mb-4">Seu diagnóstico tributário foi recebido com sucesso.</p>
-        <div className="bg-gray-50 rounded-lg p-4 mb-4">
-          <p className="text-sm text-gray-500">Número do protocolo</p>
-          <p className="text-lg font-bold" style={{ color: '#1a5c2a' }}>{protocolo}</p>
+        <div className="bg-gradient-to-br from-[#f2efe8] to-[#e8f5e9] rounded-xl p-5 mb-4 border border-[#0d4f1a]/10">
+          <p className="text-sm text-gray-500 mb-1">Número do protocolo</p>
+          <p className="text-lg font-bold" style={{ color: '#0d4f1a' }}>{protocolo}</p>
         </div>
         <p className="text-xs text-gray-400">
           Data: {new Date().toLocaleString('pt-BR')}
@@ -182,13 +182,16 @@ function FormularioPage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#f2efe8' }}>
-      <header className="agro-gradient text-white">
-        <div className="max-w-4xl mx-auto px-6 py-5">
+      <header className="agro-gradient-warm text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 opacity-[0.08]">
+          <svg viewBox="0 0 200 200" fill="white"><path d="M100 0c55.2 0 100 44.8 100 100s-44.8 100-100 100S0 155.2 0 100 44.8 0 100 0zm0 20C55.8 20 20 55.8 20 100s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80z"/><circle cx="100" cy="100" r="30"/></svg>
+        </div>
+        <div className="max-w-4xl mx-auto px-6 py-5 relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+              <div className="w-11 h-11 rounded-xl bg-white/12 flex items-center justify-center backdrop-blur-sm border border-white/10">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
               </div>
               <div>

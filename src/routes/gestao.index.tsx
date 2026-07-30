@@ -89,7 +89,7 @@ function GestaoPage() {
   }
 
   if (authLoading || loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#faf8f3' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#f2efe8' }}>
       <div className="text-center"><div className="w-12 h-12 rounded-full agro-gradient animate-pulse mx-auto" /><p className="mt-4 text-gray-500">Carregando...</p></div>
     </div>
   );
@@ -119,10 +119,10 @@ function GestaoPage() {
     <div className="min-h-screen flex" style={{ background: '#f2efe8' }}>
       <aside className={`fixed lg:sticky top-0 left-0 z-50 w-64 h-screen agro-gradient text-white transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         <div className="p-6 border-b border-white/10">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-11 h-11 rounded-xl agro-gradient-warm flex items-center justify-center shadow-lg shadow-black/10">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </div>
             <div>
@@ -130,8 +130,8 @@ function GestaoPage() {
               <p className="text-xs text-white/50 tracking-wide">Tributário do Agro</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-2.5 bg-white/5 rounded-xl">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-white/20 to-white/5 flex items-center justify-center text-sm font-bold backdrop-blur-sm">{user?.nome?.charAt(0)}</div>
+          <div className="flex items-center gap-3 p-2.5 bg-white/8 rounded-xl border border-white/5 backdrop-blur-sm">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#e8b830] to-[#d4a017] flex items-center justify-center text-sm font-bold text-[#0d4f1a]">{user?.nome?.charAt(0)}</div>
             <div>
               <p className="text-sm font-medium leading-tight">{user?.nome}</p>
               <p className="text-xs text-white/50">{user?.cargo}</p>
@@ -176,48 +176,63 @@ function GestaoPage() {
         <main className="p-6 lg:p-8">
           {sidebarOpen && <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Gestão dos Diagnósticos</h1>
-            <p className="text-gray-500 text-sm mt-1">Acompanhe e gerencie todos os diagnósticos tributários</p>
+          <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0d4f1a] via-[#1a7a2e] to-[#e8b830] p-6 lg:p-8">
+            <div className="absolute top-0 right-0 w-64 h-64 opacity-10">
+              <svg viewBox="0 0 200 200" fill="white"><path d="M100 0c55.2 0 100 44.8 100 100s-44.8 100-100 100S0 155.2 0 100 44.8 0 100 0zm0 20C55.8 20 20 55.8 20 100s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80z"/><circle cx="100" cy="100" r="30"/></svg>
+            </div>
+            <div className="relative z-10 flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white tracking-tight">Gestão dos Diagnósticos</h1>
+                <p className="text-white/70 text-sm mt-0.5">Acompanhe e gerencie todos os diagnósticos tributários do agronegócio</p>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-            {statsCards.map(s => (
-              <div key={s.label} className="bg-white rounded-2xl agro-shadow-md border border-gray-100 p-5 card-hover">
-                <p className="text-xs font-medium text-gray-500 mb-1.5 tracking-wide uppercase">{s.label}</p>
-                <p className="text-3xl font-bold text-gray-900 tracking-tight">{s.value}</p>
+            {statsCards.map((s, i) => (
+              <div key={s.label} className="bg-white rounded-2xl agro-shadow-md border border-gray-100 p-5 card-hover hover:shadow-lg hover:-translate-y-0.5 relative overflow-hidden group">
+                <div className={`absolute top-0 right-0 w-20 h-20 -mr-6 -mt-6 rounded-full opacity-[0.06] transition-transform group-hover:scale-150 ${i % 2 === 0 ? 'bg-[#0d4f1a]' : 'bg-[#e8b830]'}`} />
+                <p className="text-xs font-medium text-gray-500 mb-1.5 tracking-wide uppercase relative">{s.label}</p>
+                <p className={`text-3xl font-bold tracking-tight relative ${s.color}`}>{s.value}</p>
               </div>
             ))}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide">Formulários por Status</h3>
+            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#0d4f1a]/5 to-transparent rounded-full -mr-10 -mt-10" />
+              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide relative">Formulários por Status</h3>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={statusChartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
                   <YAxis /><Tooltip />
-                  <Bar dataKey="value" fill="#1a5c2a" radius={[6,6,0,0]} />
+                  <Bar dataKey="value" fill="#0d4f1a" radius={[6,6,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide">Produtores por Estado</h3>
+            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#e8b830]/5 to-transparent rounded-full -mr-10 -mt-10" />
+              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide relative">Produtores por Estado</h3>
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart><Pie data={estadoChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>{estadoChartData.map((_,i) => <Cell key={i} fill={COLORS[i%COLORS.length]} />)}</Pie><Tooltip /><Legend /></PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide">Produtores por Atividade</h3>
+            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#e67e22]/5 to-transparent rounded-full -mr-10 -mt-10" />
+              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide relative">Produtores por Atividade</h3>
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart><Pie data={atividadeChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>{atividadeChartData.map((_,i) => <Cell key={i} fill={COLORS[(i+2)%COLORS.length]} />)}</Pie><Tooltip /><Legend /></PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide">Faixa de Receita</h3>
+            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#5d4037]/5 to-transparent rounded-full -mr-10 -mt-10" />
+              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide relative">Faixa de Receita</h3>
               <ResponsiveContainer width="100%" height={280}>
-                <PieChart><Pie data={receitaChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>{receitaChartData.map((_,i) => <Cell key={i} fill={i===0?'#4caf50':'#c9a84c'} />)}</Pie><Tooltip /><Legend /></PieChart>
+                <PieChart><Pie data={receitaChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>{receitaChartData.map((_,i) => <Cell key={i} fill={i===0?'#1a7a2e':'#e8b830'} />)}</Pie><Tooltip /><Legend /></PieChart>
               </ResponsiveContainer>
             </div>
           </div>

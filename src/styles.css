@@ -44,13 +44,15 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-agro-green: #1a5c2a;
-  --color-agro-green-light: #4caf50;
-  --color-agro-green-lighter: #e8f5e9;
-  --color-agro-gold: #c9a84c;
-  --color-agro-gold-light: #f5e6b8;
+  --color-agro-green: #0d4f1a;
+  --color-agro-green-light: #1a7a2e;
+  --color-agro-green-lighter: #dcfce7;
+  --color-agro-gold: #e8b830;
+  --color-agro-gold-light: #fef3c7;
   --color-agro-bege: #faf8f3;
   --color-agro-brown: #5d4037;
+  --color-agro-sunset: #e67e22;
+  --color-sky-blue: #0ea5e9;
 }
 
 :root {
@@ -61,99 +63,82 @@
   --card-foreground: #1a1a2e;
   --popover: #ffffff;
   --popover-foreground: #1a1a2e;
-  --primary: #1a5c2a;
+  --primary: #0d4f1a;
   --primary-foreground: #ffffff;
-  --secondary: #e8f5e9;
-  --secondary-foreground: #1a5c2a;
+  --secondary: #dcfce7;
+  --secondary-foreground: #0d4f1a;
   --muted: #f1f5f1;
   --muted-foreground: #6b7280;
-  --accent: #c9a84c;
+  --accent: #e8b830;
   --accent-foreground: #1a1a2e;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
-  --border: #e5e7eb;
+  --border: #d4d4d4;
   --input: #d1d5db;
-  --ring: #1a5c2a;
-  --chart-1: #1a5c2a;
-  --chart-2: #4caf50;
-  --chart-3: #c9a84c;
+  --ring: #0d4f1a;
+  --chart-1: #0d4f1a;
+  --chart-2: #1a7a2e;
+  --chart-3: #e8b830;
   --chart-4: #5d4037;
   --chart-5: #81c784;
-  --sidebar: #1a5c2a;
+  --sidebar: #0d4f1a;
   --sidebar-foreground: #ffffff;
-  --sidebar-primary: #c9a84c;
+  --sidebar-primary: #e8b830;
   --sidebar-primary-foreground: #1a1a2e;
-  --sidebar-accent: #2e7d32;
+  --sidebar-accent: #1a7a2e;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #2e7d32;
-  --sidebar-ring: #c9a84c;
-}
-
-.dark {
-  --background: #0f1a0f;
-  --foreground: #f0f0e8;
-  --card: #1a2e1a;
-  --card-foreground: #f0f0e8;
-  --popover: #1a2e1a;
-  --popover-foreground: #f0f0e8;
-  --primary: #4caf50;
-  --primary-foreground: #0f1a0f;
-  --secondary: #1a5c2a;
-  --secondary-foreground: #f0f0e8;
-  --muted: #1a2e1a;
-  --muted-foreground: #9ca3af;
-  --accent: #c9a84c;
-  --accent-foreground: #0f1a0f;
-  --destructive: #ef4444;
-  --destructive-foreground: #0f1a0f;
-  --border: #2e7d32;
-  --input: #2e7d32;
-  --ring: #4caf50;
-  --chart-1: #4caf50;
-  --chart-2: #81c784;
-  --chart-3: #c9a84c;
-  --chart-4: #a5d6a7;
-  --chart-5: #2e7d32;
-  --sidebar: #0f1a0f;
-  --sidebar-foreground: #f0f0e8;
-  --sidebar-primary: #c9a84c;
-  --sidebar-primary-foreground: #0f1a0f;
-  --sidebar-accent: #1a5c2a;
-  --sidebar-accent-foreground: #f0f0e8;
-  --sidebar-border: #2e7d32;
-  --sidebar-ring: #c9a84c;
+  --sidebar-border: #1a7a2e;
+  --sidebar-ring: #e8b830;
 }
 
 @layer base {
   * { border-color: var(--color-border); }
   body {
     background-color: var(--color-background);
+    background-image:
+      radial-gradient(ellipse at 10% 20%, rgba(13, 79, 26, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(232, 184, 48, 0.04) 0%, transparent 50%);
     color: var(--color-foreground);
     font-family: 'Inter', 'SF Pro', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  ::selection { background: #1a5c2a; color: white; }
+  ::selection { background: #0d4f1a; color: white; }
 }
 
 @utility agro-gradient {
-  background: linear-gradient(135deg, #1a5c2a 0%, #2e7d32 50%, #1a5c2a 100%);
+  background: linear-gradient(135deg, #0d4f1a 0%, #1a7a2e 50%, #0d4f1a 100%);
 }
 
-@utility agro-gradient-gold {
-  background: linear-gradient(135deg, #c9a84c, #b8942e);
+@utility agro-gradient-warm {
+  background: linear-gradient(135deg, #0d4f1a 0%, #1a7a2e 30%, #e8b830 100%);
+}
+
+@utility agro-gradient-sunset {
+  background: linear-gradient(135deg, #e8b830 0%, #e67e22 50%, #d35400 100%);
+}
+
+@utility agro-gradient-glass {
+  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
 }
 
 @utility agro-shadow {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
 }
 
 @utility agro-shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.05);
 }
 
 @utility agro-shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -4px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06), 0 4px 10px -6px rgba(0,0,0,0.04);
+}
+
+@utility agro-shadow-xl {
+  box-shadow: 0 20px 40px -8px rgba(0,0,0,0.08), 0 8px 20px -8px rgba(0,0,0,0.05);
 }
 
 @utility agro-button {
@@ -166,7 +151,6 @@
   font-weight: 600;
   transition: all 0.2s ease;
   cursor: pointer;
-  letter-spacing: 0.01em;
 }
 
 @utility agro-button-primary {
@@ -179,9 +163,8 @@
   font-weight: 600;
   transition: all 0.2s ease;
   cursor: pointer;
-  letter-spacing: 0.01em;
   color: white;
-  background: linear-gradient(135deg, #1a5c2a, #2e7d32);
+  background: linear-gradient(135deg, #0d4f1a, #1a7a2e);
 }
 
 @utility agro-button-gold {
@@ -194,9 +177,8 @@
   font-weight: 600;
   transition: all 0.2s ease;
   cursor: pointer;
-  letter-spacing: 0.01em;
-  color: white;
-  background: linear-gradient(135deg, #c9a84c, #b8942e);
+  color: #1a1a2e;
+  background: linear-gradient(135deg, #e8b830, #d4a017);
 }
 
 @utility agro-input {
@@ -217,11 +199,10 @@
   color: #374151;
   margin-bottom: 0.375rem;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
 }
 
 @utility agro-progress-bar {
-  background: linear-gradient(90deg, #1a5c2a, #4caf50);
+  background: linear-gradient(90deg, #0d4f1a, #1a7a2e);
   height: 0.5rem;
   border-radius: 9999px;
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -243,15 +224,15 @@
 }
 
 @utility step-active {
-  border-color: #1a5c2a;
-  background: #1a5c2a;
+  border-color: #0d4f1a;
+  background: #0d4f1a;
   color: white;
-  box-shadow: 0 0 0 4px rgba(26,92,42,0.15);
+  box-shadow: 0 0 0 4px rgba(13,79,26,0.15);
 }
 
 @utility step-completed {
-  border-color: #4caf50;
-  background: #4caf50;
+  border-color: #1a7a2e;
+  background: #1a7a2e;
   color: white;
 }
 
@@ -262,5 +243,34 @@
 }
 
 @utility card-hover {
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility agro-badge-green {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  color: #0d4f1a;
+  border: 1px solid rgba(13,79,26,0.1);
+}
+
+@utility agro-badge-gold {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border: 1px solid rgba(232,184,48,0.15);
+}
+
+@utility agro-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(13,79,26,0.08), transparent);
 }

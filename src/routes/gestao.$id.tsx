@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, type ReactNode } from "react";
 import { useAuth } from "../lib/auth-context";
-import { supabase, isConfigured } from "../lib/supabase";
-import { getRespostas, getFormulariosCompletos } from "../lib/form-service";
-import { toast } from "sonner";
+import { supabase } from "../lib/supabase";
 
 export const Route = createFileRoute("/gestao/$id")({
   component: ProdutorPage,
@@ -120,18 +118,6 @@ function ProdutorPage() {
 
   async function loadData() {
     setLoading(true);
-    if (!isConfigured) {
-      const forms = await getFormulariosCompletos();
-      const form = (forms as any[]).find(f => f.id === id);
-      if (form) {
-        setProdutor({ ...form.produtores, id: form.produtor_id, status_preenchimento: form.status_preenchimento, percentual_preenchido: form.percentual_preenchido, protocolo: form.protocolo, data_envio: form.data_envio });
-      } else {
-        setProdutor({ nome_razao: "Produtor Demo", cpf_cnpj: "000.000.000-00", municipio: "Demo", estado: "DF", atividade_principal: "Soja", tipo: "Pessoa Física", status_preenchimento: "em_preenchimento", percentual_preenchido: 60 });
-      }
-      setRespostas([]);
-      setLoading(false);
-      return;
-    }
     const [fData, rData] = await Promise.all([
       supabase.from('formularios').select('*, produtores(*)').eq('id', id).single(),
       supabase.from('respostas').select('*').eq('formulario_id', id),
