@@ -21,7 +21,6 @@ const ETAPAS = [
 
 const ATIVIDADES = ['Soja', 'Milho', 'Pecuária', 'Leite', 'Fruticultura', 'Avicultura', 'Suinocultura', 'Outra'];
 const TIPOS_PRODUTOR = ['Pessoa Física', 'Pessoa Jurídica', 'Produtor Integrado', 'Cooperativa', 'Agroindústria'];
-const REGIMES = ['Simples Nacional', 'Lucro Presumido', 'Lucro Real', 'MEI', 'Produtor Rural PF'];
 const ESTADOS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 const CATEGORIAS_DOC = ['Cartão do CNPJ','CPF e documento de identificação','Inscrição estadual','Comprovante do CAEPF','Declaração do Imposto de Renda','LCDPR','Livro Caixa','Notas fiscais','Contratos de arrendamento','Contratos de compra e venda','Documentos dos imóveis rurais','ITR','CCIR','CAR','Certidões','Comprovantes de financiamentos','Outros documentos'];
 
@@ -226,7 +225,7 @@ function FormularioPage() {
           {etapaAtual === 4 && <Etapa4 respostas={respostas} updateField={updateField} />}
           {etapaAtual === 5 && <Etapa5 respostas={respostas} updateField={updateField} />}
           {etapaAtual === 6 && <Etapa6 respostas={respostas} updateField={updateField} />}
-          {etapaAtual === 7 && <Etapa7 respostas={respostas} etapeAtual={etapaAtual} updateField={updateField} />}
+          {etapaAtual === 7 && <Etapa7 respostas={respostas} updateField={updateField} />}
         </div>
 
         <div className="flex items-center justify-between gap-4">
@@ -249,7 +248,7 @@ function FormularioPage() {
               {salvando ? "Salvando..." : "Salvar e continuar"}
             </button>
           ) : (
-            <button onClick={handleEnviar} disabled={enviando || !respostas.consentimento}
+            <button onClick={handleEnviar} disabled={enviando || !respostas.etapa7_consentimento}
               className="agro-button-gold px-8 py-3 disabled:opacity-50">
               {enviando ? "Enviando..." : "Enviar formulário"}
             </button>
@@ -293,6 +292,7 @@ function Campo({ label, campo, respostas, updateField, type = "text", options, m
 function Etapa1({ respostas, updateField, handleMaskedInput, getMaskOpts }: any) {
   const [mostrarIE, setMostrarIE] = useState(respostas.etapa1_possui_ie === 'sim');
   const [mostrarCAEPF, setMostrarCAEPF] = useState(respostas.etapa1_possui_caepf === 'sim');
+  const [mostrarEstadosOp, setMostrarEstadosOp] = useState(respostas.etapa1_mult_estados === 'sim');
   const [mostrarOutraAtv, setMostrarOutraAtv] = useState(respostas.etapa1_atividade === 'Outra');
 
   return (
@@ -310,28 +310,18 @@ function Etapa1({ respostas, updateField, handleMaskedInput, getMaskOpts }: any)
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Campo label="Nome ou Razão Social" campo="etapa1_nome" respostas={respostas} updateField={updateField} required />
-        <Campo label="CPF ou CNPJ" campo="etapa1_cpf_cnpj" respostas={respostas} updateField={updateField} maskType={getMaskOpts('cpf_cnpj')} handleMaskedInput={handleMaskedInput} placeholder={respostas.etapa1_tipo === 'Pessoa Física' ? '000.000.000-00' : '00.000.000/0000-00'} />
-        <Campo label="Tipo" campo="etapa1_tipo" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostrarIE(false); setMostrarCAEPF(false); }} options={TIPOS_PRODUTOR} />
-        <Campo label="Atividade Principal" campo="etapa1_atividade" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostrarOutraAtv(v === 'Outra'); }} options={ATIVIDADES} />
-        {mostrarOutraAtv && <Campo label="Descreva outra atividade" campo="etapa1_atividade_outra" respostas={respostas} updateField={updateField} />}
-        <Campo label="Município" campo="etapa1_municipio" respostas={respostas} updateField={updateField} required />
-        <Campo label="Estado" campo="etapa1_estado" respostas={respostas} updateField={updateField} options={ESTADOS} required />
-        <Campo label="Telefone" campo="etapa1_telefone" respostas={respostas} updateField={updateField} maskType="phone" handleMaskedInput={handleMaskedInput} />
-        <Campo label="WhatsApp" campo="etapa1_whatsapp" respostas={respostas} updateField={updateField} maskType="phone" handleMaskedInput={handleMaskedInput} />
-        <Campo label="E-mail" campo="etapa1_email" respostas={respostas} updateField={updateField} type="email" />
-      </div>
-
-      <div className="mt-6 p-4 bg-green-50 rounded-xl">
-        <h3 className="font-semibold text-gray-800 mb-3">Informações Adicionais</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Campo label="Possui Inscrição Estadual?" campo="etapa1_possui_ie" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostrarIE(v === 'sim'); }} options={['sim', 'não']} />
-          {mostrarIE && <Campo label="Número da IE" campo="etapa1_ie_numero" respostas={respostas} updateField={updateField} />}
-          <Campo label="Possui CAEPF?" campo="etapa1_possui_caepf" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostrarCAEPF(v === 'sim'); }} options={['sim', 'não']} />
-          {mostrarCAEPF && <Campo label="Número do CAEPF" campo="etapa1_caepf_numero" respostas={respostas} updateField={updateField} />}
-          <Campo label="Possui estabelecimentos em mais de um estado?" campo="etapa1_mult_estados" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-          <Campo label="Estados onde opera" campo="etapa1_estados_operacao" respostas={respostas} updateField={updateField} placeholder="MT, GO, MS" />
-        </div>
+        <Campo label="Nome / Razão Social" campo="etapa1_nome" respostas={respostas} updateField={updateField} required />
+        <Campo label="CPF ou CNPJ" campo="etapa1_cpf_cnpj" respostas={respostas} updateField={updateField} maskType={getMaskOpts('cpf_cnpj')} handleMaskedInput={handleMaskedInput} placeholder={respostas.etapa1_tipo === 'Pessoa Física' ? '000.000.000-00' : '00.000.000/0000-00'} required />
+        <Campo label="Tipo" campo="etapa1_tipo" respostas={respostas} updateField={updateField} options={TIPOS_PRODUTOR} required />
+        <Campo label="Atividade principal" campo="etapa1_atividade" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostrarOutraAtv(v === 'Outra'); }} options={ATIVIDADES} required />
+        {mostrarOutraAtv && <Campo label="Descreva a atividade" campo="etapa1_atividade_outra" respostas={respostas} updateField={updateField} required />}
+        <Campo label="Estados onde opera" campo="etapa1_estados_operacao" respostas={respostas} updateField={updateField} placeholder="Ex: MT, GO, MS" />
+        <Campo label="Possui estabelecimentos em mais de um estado?" campo="etapa1_mult_estados" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostrarEstadosOp(v === 'sim'); }} options={['SIM', 'NÃO']} />
+        {mostrarEstadosOp && <Campo label="Quais estados?" campo="etapa1_estados_opera_detalhe" respostas={respostas} updateField={updateField} placeholder="Ex: MT, GO, MS" />}
+        <Campo label="Tem Inscrição Estadual (IE)?" campo="etapa1_possui_ie" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostrarIE(v === 'sim'); }} options={['SIM', 'NÃO']} />
+        {mostrarIE && <Campo label="Número da IE" campo="etapa1_ie_numero" respostas={respostas} updateField={updateField} placeholder="Insira o número" />}
+        <Campo label="Possui CAEPF?" campo="etapa1_possui_caepf" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostrarCAEPF(v === 'sim'); }} options={['SIM', 'NÃO']} />
+        {mostrarCAEPF && <Campo label="Número do CAEPF" campo="etapa1_caepf_numero" respostas={respostas} updateField={updateField} placeholder="Insira o número" />}
       </div>
     </div>
   );
@@ -352,38 +342,41 @@ function Etapa2({ respostas, updateField }: any) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Campo label="Receita Bruta Rural - 2024" campo="etapa2_receita_2024" respostas={respostas} updateField={updateField} type="number" placeholder="Valor em R$" />
-        <Campo label="Receita Bruta Rural - 2025" campo="etapa2_receita_2025" respostas={respostas} updateField={updateField} type="number" placeholder="Valor em R$" />
-        <Campo label="Receita Bruta Rural - 2026" campo="etapa2_receita_2026" respostas={respostas} updateField={updateField} type="number" placeholder="Valor em R$" />
-        <Campo label="Parcela Exportada (%)" campo="etapa2_exportacao" respostas={respostas} updateField={updateField} type="number" placeholder="Percentual exportado" />
-      </div>
+      <div className="space-y-4">
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">Receitas</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="Receita bruta rural total em 2024 (R$)" campo="etapa2_receita_2024" respostas={respostas} updateField={updateField} type="number" placeholder="Valor em R$" />
+            <Campo label="Parcela exportada em 2024 (R$)" campo="etapa2_exportacao_2024" respostas={respostas} updateField={updateField} type="number" placeholder="Valor em R$" />
+            <Campo label="Receita bruta rural total em 2026 (R$)" campo="etapa2_receita_2026" respostas={respostas} updateField={updateField} type="number" placeholder="Valor em R$" />
+            <Campo label="Parcela exportada em 2026 (R$)" campo="etapa2_exportacao_2026" respostas={respostas} updateField={updateField} type="number" placeholder="Valor em R$" />
+          </div>
+        </div>
 
-      <div className="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-        <p className="text-sm text-yellow-800 font-medium">⚠️ Receita superior a R$ 3.600.000,00 pode exigir análise de enquadramento como contribuinte obrigatório.</p>
-      </div>
+        <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
+          <p className="text-sm text-yellow-800 font-medium mb-2">⚠️ Enquadramento IBS/CBS</p>
+          <p className="text-xs text-yellow-700 mb-3">Receita superior a R$ 3.600.000,00 = Contribuinte Obrigatório</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="Receita > R$ 3.600.000,00 em 2024?" campo="etapa2_acima_3600_2024" respostas={respostas} updateField={updateField} options={['SIM → CONTRIBUINTE', 'NÃO → NÃO CONTRIBUINTE']} />
+            <Campo label="Receita > R$ 3.600.000,00 em 2026?" campo="etapa2_acima_3600_2026" respostas={respostas} updateField={updateField} options={['SIM → CONTRIBUINTE', 'NÃO → NÃO CONTRIBUINTE']} />
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <Campo label="Receita superior a R$ 3.600.000 em 2024?" campo="etapa2_acima_3600_2024" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Receita superior a R$ 3.600.000 em 2026?" campo="etapa2_acima_3600_2026" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui receitas de atividades não rurais?" campo="etapa2_receitas_nao_rurais" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        {respostas.etapa2_receitas_nao_rurais === 'sim' && (
-          <>
-            <Campo label="Quais atividades?" campo="etapa2_atividades_nao_rurais" respostas={respostas} updateField={updateField} rows={2} />
-            <Campo label="Valor aproximado" campo="etapa2_valor_nao_rurais" respostas={respostas} updateField={updateField} type="number" placeholder="Valor em R$" />
-          </>
-        )}
-        <Campo label="Regime Tributário Atual" campo="etapa2_regime" respostas={respostas} updateField={updateField} options={REGIMES} />
-        <Campo label="Possui contabilidade regular?" campo="etapa2_contabilidade" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Nome do Contador/Escritório" campo="etapa2_contador" respostas={respostas} updateField={updateField} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Campo label="Possui receitas de atividades NÃO rurais?" campo="etapa2_receitas_nao_rurais" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+          {respostas.etapa2_receitas_nao_rurais === 'SIM' && (
+            <Campo label="Quais?" campo="etapa2_atividades_nao_rurais" respostas={respostas} updateField={updateField} rows={2} placeholder="Descreva as atividades não rurais" />
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
 function Etapa3({ respostas, updateField }: any) {
-  const [mostraIntegrador, setMostraIntegrador] = useState(respostas.etapa3_integrado === 'sim');
-  const [mostraCooperativa, setMostraCooperativa] = useState(respostas.etapa3_cooperativa === 'sim');
+  const [mostraIntegrador, setMostraIntegrador] = useState(respostas.etapa3_integrado === 'SIM');
+  const [mostraCooperativa, setMostraCooperativa] = useState(respostas.etapa3_cooperativa === 'SIM');
+
   return (
     <div>
       <div className="flex items-center gap-4 mb-6">
@@ -394,24 +387,40 @@ function Etapa3({ respostas, updateField }: any) {
         </div>
         <div>
           <h2 className="text-xl font-bold text-gray-800">Operações e Cadeia Produtiva</h2>
-          <p className="text-sm text-gray-500">Canais de venda e estrutura operacional</p>
+          <p className="text-sm text-gray-500">Canais de venda, insumos e relacionamento</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Campo label="Para quem vende?" campo="etapa3_vende_para" respostas={respostas} updateField={updateField} options={['Cooperativa', 'Trading', 'Cerealista', 'Agroindústria', 'Consumidor final', 'Diretamente', 'Outros']} />
-        <Campo label="Exporta diretamente?" campo="etapa3_exporta" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Vende para trading/exportadora?" campo="etapa3_vende_trading" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="É produtor integrado?" campo="etapa3_integrado" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostraIntegrador(v === 'sim'); }} options={['sim', 'não']} />
-        {mostraIntegrador && <Campo label="Nome do Integrador" campo="etapa3_integrador_nome" respostas={respostas} updateField={updateField} />}
-        <Campo label="Participa de cooperativa?" campo="etapa3_cooperativa" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostraCooperativa(v === 'sim'); }} options={['sim', 'não']} />
-        {mostraCooperativa && <Campo label="Nome da Cooperativa" campo="etapa3_cooperativa_nome" respostas={respostas} updateField={updateField} />}
-        <Campo label="Opera com não contribuintes?" campo="etapa3_nao_contribuintes" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Principais insumos" campo="etapa3_insumos" respostas={respostas} updateField={updateField} rows={2} />
-        <Campo label="Adquire máquinas agrícolas?" campo="etapa3_maquinas" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Frequência das aquisições" campo="etapa3_freq_aquisicoes" respostas={respostas} updateField={updateField} options={['Mensal', 'Trimestral', 'Semestral', 'Anual', 'Esporádica']} />
-        <Campo label="Realiza vendas interestaduais?" campo="etapa3_vendas_interestaduais" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui contratos futuros?" campo="etapa3_contratos_futuros" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
+      <div className="space-y-4">
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">Canais de Venda</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="Vende para" campo="etapa3_vende_para" respostas={respostas} updateField={updateField} options={['Cooperativa', 'Trading', 'Cerealista', 'Agroindústria', 'Consumidor final', 'Diretamente', 'Outros']} />
+            <Campo label="Exporta diretamente?" campo="etapa3_exporta" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Vende para empresa exportadora (trading/ECE)?" campo="etapa3_vende_trading" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">Relacionamento Contratual</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="É produtor integrado (contrato de integração com agroindústria)?" campo="etapa3_integrado" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostraIntegrador(v === 'SIM'); }} options={['SIM', 'NÃO']} />
+            {mostraIntegrador && <Campo label="Nome do Integrador" campo="etapa3_integrador_nome" respostas={respostas} updateField={updateField} />}
+            <Campo label="Participa de cooperativa?" campo="etapa3_cooperativa" respostas={respostas} updateField={(c: string, v: string) => { updateField(c, v); setMostraCooperativa(v === 'SIM'); }} options={['SIM', 'NÃO']} />
+            {mostraCooperativa && <Campo label="Nome da Cooperativa" campo="etapa3_cooperativa_nome" respostas={respostas} updateField={updateField} />}
+            <Campo label="Tem operações com não contribuintes?" campo="etapa3_nao_contribuintes" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">Insumos e Aquisições</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="Principais insumos adquiridos (fertilizantes, defensivos, sementes etc.)" campo="etapa3_insumos" respostas={respostas} updateField={updateField} rows={2} placeholder="Liste os principais insumos" />
+            <Campo label="De quem adquire os insumos?" campo="etapa3_fornecedores" respostas={respostas} updateField={updateField} placeholder="Ex: Cooperativa, loja agropecuária, direto da indústria" />
+            <Campo label="Adquire máquinas e implementos agrícolas?" campo="etapa3_maquinas" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Frequência das aquisições" campo="etapa3_freq_aquisicoes" respostas={respostas} updateField={updateField} options={['Mensal', 'Trimestral', 'Semestral', 'Anual', 'Esporádica']} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -428,23 +437,40 @@ function Etapa4({ respostas, updateField }: any) {
         </div>
         <div>
           <h2 className="text-xl font-bold text-gray-800">Situação Fiscal Atual</h2>
-          <p className="text-sm text-gray-500">Obrigações fiscais e tributárias</p>
+          <p className="text-sm text-gray-500">Obrigações fiscais, escrituração e tributos</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Campo label="Já emite NF-e nas vendas?" campo="etapa4_emite_nfe" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Software de gestão fiscal" campo="etapa4_software_fiscal" respostas={respostas} updateField={updateField} />
-        <Campo label="Tipo de escrituração" campo="etapa4_escrituracao" respostas={respostas} updateField={updateField} options={['LCDPR', 'Livro Caixa', 'Contabilidade gerencial', 'Contabilidade formal', 'Não possui escrituração']} />
-        <Campo label="Recolhe FUNRURAL?" campo="etapa4_funrural" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Modalidade de recolhimento FUNRURAL" campo="etapa4_funrural_modalidade" respostas={respostas} updateField={updateField} options={['Sobre a receita bruta', 'Sobre a folha', 'Substituto', 'Não se aplica']} />
-        <Campo label="Opera em estado com FETHAB/FUNDEINFRA/FUNDERSUL?" campo="etapa4_fundo_estadual" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui outras atividades comerciais?" campo="etapa4_outras_atividades" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui débitos tributários?" campo="etapa4_debitos" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui parcelamentos?" campo="etapa4_parcelamentos" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui pendências na Receita Federal?" campo="etapa4_pendencias_rf" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui pendências na SEFAZ?" campo="etapa4_pendencias_sefaz" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui certidões negativas válidas?" campo="etapa4_certidoes" respostas={respostas} updateField={updateField} options={['sim', 'não', 'parcial']} />
+      <div className="space-y-4">
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">Documentação Fiscal</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="Já emite NF-e nas vendas?" campo="etapa4_emite_nfe" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Sistema/Software de gestão fiscal utilizado" campo="etapa4_software_fiscal" respostas={respostas} updateField={updateField} placeholder="Ex: Mastermaq, Orbia, Contmatic..." />
+            <Campo label="Tipo de escrituração" campo="etapa4_escrituracao" respostas={respostas} updateField={updateField} options={['LCDPR', 'Livro Caixa', 'Contabilidade gerencial / formal', 'Não possui escrituração']} />
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">Tributos e Obrigações</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="Recolhe Funrural?" campo="etapa4_funrural" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Modalidade de recolhimento" campo="etapa4_funrural_modalidade" respostas={respostas} updateField={updateField} options={['Sobre a receita bruta', 'Sobre a folha de pagamento', 'Substituto', 'Não se aplica']} />
+            <Campo label="Opera em estado com FETHAB/FUNDEINFRA/FUNDERSUL?" campo="etapa4_fundo_estadual" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            {respostas.etapa4_fundo_estadual === 'SIM' && <Campo label="Qual estado?" campo="etapa4_fundo_estado" respostas={respostas} updateField={updateField} />}
+            <Campo label="Tem gestão financeira?" campo="etapa4_gestao_financeira" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Tem outras atividades comerciais ou de serviços?" campo="etapa4_outras_atividades" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">Situação de Regularidade</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="Possui débitos tributários?" campo="etapa4_debitos" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Possui parcelamentos?" campo="etapa4_parcelamentos" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Possui certidões negativas válidas?" campo="etapa4_certidoes" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO', 'Parcialmente']} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -465,16 +491,35 @@ function Etapa5({ respostas, updateField }: any) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Campo label="Possui imóvel rural próprio?" campo="etapa5_imovel_proprio" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Quantidade de imóveis" campo="etapa5_qtd_imoveis" respostas={respostas} updateField={updateField} type="number" />
-        <Campo label="Total de hectares próprios" campo="etapa5_hectares_proprios" respostas={respostas} updateField={updateField} type="number" />
-        <Campo label="Opera em área arrendada?" campo="etapa5_arrendada" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Hectares arrendados" campo="etapa5_hectares_arrendados" respostas={respostas} updateField={updateField} type="number" />
-        <Campo label="Possui holding rural?" campo="etapa5_holding" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui seguro rural?" campo="etapa5_seguro" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui financiamentos?" campo="etapa5_financiamentos" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
-        <Campo label="Possui planejamento sucessório?" campo="etapa5_sucessorio" respostas={respostas} updateField={updateField} options={['sim', 'não']} />
+      <div className="space-y-4">
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">Imóveis Rurais</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="Possui imóvel rural próprio?" campo="etapa5_imovel_proprio" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Total de hectares próprios" campo="etapa5_hectares_proprios" respostas={respostas} updateField={updateField} type="number" placeholder="Hectares" />
+            <Campo label="Opera em área arrendada?" campo="etapa5_arrendada" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Hectares arrendados" campo="etapa5_hectares_arrendados" respostas={respostas} updateField={updateField} type="number" placeholder="Hectares" />
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">Estrutura Societária</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="Possui holding rural ou estrutura societária?" campo="etapa5_holding" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            {respostas.etapa5_holding === 'SIM' && <Campo label="Descrição da estrutura" campo="etapa5_holding_descricao" respostas={respostas} updateField={updateField} rows={2} />}
+            <Campo label="Possui sócios/herdeiros que também atuam na atividade?" campo="etapa5_socios" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-4">
+          <h3 className="font-semibold text-gray-700 mb-3">Contratos e Financiamentos</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Campo label="Possui seguro rural?" campo="etapa5_seguro" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Financiamentos em andamento?" campo="etapa5_financiamentos" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Possui estruturas contratuais de vendas e compras?" campo="etapa5_contratos" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+            <Campo label="Possui planejamento sucessório?" campo="etapa5_sucessorio" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -482,7 +527,6 @@ function Etapa5({ respostas, updateField }: any) {
 
 function Etapa6({ respostas, updateField }: any) {
   const [arquivos, setArquivos] = useState<Record<string, File[]>>({});
-  const Categorias = CATEGORIAS_DOC;
 
   function handleFileChange(categoria: string, files: FileList | null) {
     if (!files) return;
@@ -516,7 +560,7 @@ function Etapa6({ respostas, updateField }: any) {
       <p className="text-sm text-gray-500 mb-4">Formatos aceitos: PDF, JPG, PNG, DOCX, XLSX</p>
 
       <div className="space-y-4">
-        {Categorias.map(cat => (
+        {CATEGORIAS_DOC.map(cat => (
           <div key={cat} className="border border-gray-200 rounded-xl p-4 hover:border-green-200 transition-colors">
             <label className="flex items-center justify-between cursor-pointer">
               <span className="font-medium text-gray-700 text-sm">{cat}</span>
@@ -560,37 +604,63 @@ function Etapa6({ respostas, updateField }: any) {
   );
 }
 
-function Etapa7({ respostas, etapeAtual, updateField }: any) {
+function Etapa7({ respostas, updateField }: any) {
   const secoes = [
-    { titulo: "Identificação e Perfil", campos: [
-      { label: "Nome/Razão Social", campo: "etapa1_nome" },
-      { label: "CPF/CNPJ", campo: "etapa1_cpf_cnpj" },
-      { label: "Tipo", campo: "etapa1_tipo" },
-      { label: "Atividade", campo: "etapa1_atividade" },
-      { label: "Município", campo: "etapa1_municipio" },
-      { label: "Estado", campo: "etapa1_estado" },
-      { label: "E-mail", campo: "etapa1_email" },
-    ]},
-    { titulo: "Dados Financeiros", campos: [
-      { label: "Receita 2024", campo: "etapa2_receita_2024" },
-      { label: "Receita 2026", campo: "etapa2_receita_2026" },
-      { label: "Regime Tributário", campo: "etapa2_regime" },
-    ]},
-    { titulo: "Operações", campos: [
-      { label: "Vende para", campo: "etapa3_vende_para" },
-      { label: "Produtor Integrado", campo: "etapa3_integrado" },
-      { label: "Participa de cooperativa", campo: "etapa3_cooperativa" },
-    ]},
-    { titulo: "Situação Fiscal", campos: [
-      { label: "Emite NF-e", campo: "etapa4_emite_nfe" },
-      { label: "Escrituração", campo: "etapa4_escrituracao" },
-      { label: "FUNRURAL", campo: "etapa4_funrural" },
-    ]},
-    { titulo: "Patrimônio", campos: [
-      { label: "Imóvel rural próprio", campo: "etapa5_imovel_proprio" },
-      { label: "Holding rural", campo: "etapa5_holding" },
-      { label: "Seguro rural", campo: "etapa5_seguro" },
-    ]},
+    {
+      titulo: "Identificação e Perfil", campos: [
+        { label: "Nome / Razão Social", campo: "etapa1_nome" },
+        { label: "CPF/CNPJ", campo: "etapa1_cpf_cnpj" },
+        { label: "Tipo", campo: "etapa1_tipo" },
+        { label: "Atividade principal", campo: "etapa1_atividade" },
+        { label: "Estados onde opera", campo: "etapa1_estados_operacao" },
+        { label: "IE", campo: "etapa1_ie_numero" },
+        { label: "CAEPF", campo: "etapa1_caepf_numero" },
+      ]
+    },
+    {
+      titulo: "Dados Financeiros e Enquadramento", campos: [
+        { label: "Receita bruta 2024", campo: "etapa2_receita_2024" },
+        { label: "Exportação 2024", campo: "etapa2_exportacao_2024" },
+        { label: "Receita bruta 2026", campo: "etapa2_receita_2026" },
+        { label: "Exportação 2026", campo: "etapa2_exportacao_2026" },
+        { label: "Enquadramento 2024", campo: "etapa2_acima_3600_2024" },
+        { label: "Enquadramento 2026", campo: "etapa2_acima_3600_2026" },
+        { label: "Receitas não rurais", campo: "etapa2_receitas_nao_rurais" },
+      ]
+    },
+    {
+      titulo: "Operações e Cadeia Produtiva", campos: [
+        { label: "Vende para", campo: "etapa3_vende_para" },
+        { label: "Exporta diretamente", campo: "etapa3_exporta" },
+        { label: "Produtor integrado", campo: "etapa3_integrado" },
+        { label: "Cooperativa", campo: "etapa3_cooperativa" },
+        { label: "Operações com não contribuintes", campo: "etapa3_nao_contribuintes" },
+      ]
+    },
+    {
+      titulo: "Situação Fiscal Atual", campos: [
+        { label: "Emite NF-e", campo: "etapa4_emite_nfe" },
+        { label: "Software fiscal", campo: "etapa4_software_fiscal" },
+        { label: "Escrituração", campo: "etapa4_escrituracao" },
+        { label: "Funrural", campo: "etapa4_funrural" },
+        { label: "FETHAB/FUNDEINFRA/FUNDERSUL", campo: "etapa4_fundo_estadual" },
+        { label: "Gestão financeira", campo: "etapa4_gestao_financeira" },
+        { label: "Outras atividades", campo: "etapa4_outras_atividades" },
+      ]
+    },
+    {
+      titulo: "Patrimônio e Estrutura", campos: [
+        { label: "Imóvel próprio", campo: "etapa5_imovel_proprio" },
+        { label: "Hectares próprios", campo: "etapa5_hectares_proprios" },
+        { label: "Área arrendada", campo: "etapa5_arrendada" },
+        { label: "Holding rural", campo: "etapa5_holding" },
+        { label: "Sócios/herdeiros na atividade", campo: "etapa5_socios" },
+        { label: "Seguro rural", campo: "etapa5_seguro" },
+        { label: "Financiamentos", campo: "etapa5_financiamentos" },
+        { label: "Contratos de venda/compra", campo: "etapa5_contratos" },
+        { label: "Planejamento sucessório", campo: "etapa5_sucessorio" },
+      ]
+    },
   ];
 
   return (
@@ -609,10 +679,7 @@ function Etapa7({ respostas, etapeAtual, updateField }: any) {
 
       {secoes.map(sec => (
         <div key={sec.titulo} className="mb-6 p-4 bg-gray-50 rounded-xl">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-800">{sec.titulo}</h3>
-            <button onClick={() => etapeAtual(1)} className="text-xs font-medium" style={{ color: '#1a5c2a' }}>Editar</button>
-          </div>
+          <h3 className="font-semibold text-gray-800 mb-3">{sec.titulo}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {sec.campos.map(c => respostas[c.campo] ? (
               <div key={c.campo}>
@@ -627,17 +694,17 @@ function Etapa7({ respostas, etapeAtual, updateField }: any) {
       <div className="border-t border-gray-200 pt-6 mt-6">
         <h3 className="font-semibold text-gray-800 mb-4">Confirmação</h3>
         <label className="flex items-start gap-3 mb-3">
-          <input type="checkbox" checked={respostas.informacoes_verdadeiras || false} onChange={e => updateField('informacoes_verdadeiras', e.target.checked)}
+          <input type="checkbox" checked={respostas.etapa7_informacoes_verdadeiras || false} onChange={e => updateField('etapa7_informacoes_verdadeiras', e.target.checked)}
             className="mt-1 w-4 h-4 rounded border-gray-300" style={{ accentColor: '#1a5c2a' }} />
           <span className="text-sm text-gray-600">Declaro que as informações prestadas são verdadeiras e assumo a responsabilidade pelas mesmas.</span>
         </label>
         <label className="flex items-start gap-3 mb-3">
-          <input type="checkbox" checked={respostas.consentimento || false} onChange={e => updateField('consentimento', e.target.checked)}
+          <input type="checkbox" checked={respostas.etapa7_consentimento || false} onChange={e => updateField('etapa7_consentimento', e.target.checked)}
             className="mt-1 w-4 h-4 rounded border-gray-300" style={{ accentColor: '#1a5c2a' }} />
           <span className="text-sm text-gray-600">Autorizo o tratamento dos meus dados pessoais para fins de diagnóstico tributário.</span>
         </label>
         <label className="flex items-start gap-3">
-          <input type="checkbox" checked={respostas.aceite_privacidade || false} onChange={e => updateField('aceite_privacidade', e.target.checked)}
+          <input type="checkbox" checked={respostas.etapa7_aceite_privacidade || false} onChange={e => updateField('etapa7_aceite_privacidade', e.target.checked)}
             className="mt-1 w-4 h-4 rounded border-gray-300" style={{ accentColor: '#1a5c2a' }} />
           <span className="text-sm text-gray-600">Aceito a política de privacidade e termos de uso.</span>
         </label>
