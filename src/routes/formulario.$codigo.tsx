@@ -353,15 +353,6 @@ function Etapa2({ respostas, updateField }: any) {
           </div>
         </div>
 
-        <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
-          <p className="text-sm text-yellow-800 font-medium mb-2">⚠️ Enquadramento IBS/CBS</p>
-          <p className="text-xs text-yellow-700 mb-3">Receita superior a R$ 3.600.000,00 = Contribuinte Obrigatório</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Campo label="Receita > R$ 3.600.000,00 em 2024?" campo="etapa2_acima_3600_2024" respostas={respostas} updateField={updateField} options={['SIM → CONTRIBUINTE', 'NÃO → NÃO CONTRIBUINTE']} />
-            <Campo label="Receita > R$ 3.600.000,00 em 2026?" campo="etapa2_acima_3600_2026" respostas={respostas} updateField={updateField} options={['SIM → CONTRIBUINTE', 'NÃO → NÃO CONTRIBUINTE']} />
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Campo label="Possui receitas de atividades NÃO rurais?" campo="etapa2_receitas_nao_rurais" respostas={respostas} updateField={updateField} options={['SIM', 'NÃO']} />
           {respostas.etapa2_receitas_nao_rurais === 'SIM' && (
@@ -623,8 +614,7 @@ function Etapa7({ respostas, updateField }: any) {
         { label: "Exportação 2024", campo: "etapa2_exportacao_2024" },
         { label: "Receita bruta 2026", campo: "etapa2_receita_2026" },
         { label: "Exportação 2026", campo: "etapa2_exportacao_2026" },
-        { label: "Enquadramento 2024", campo: "etapa2_acima_3600_2024" },
-        { label: "Enquadramento 2026", campo: "etapa2_acima_3600_2026" },
+
         { label: "Receitas não rurais", campo: "etapa2_receitas_nao_rurais" },
       ]
     },
