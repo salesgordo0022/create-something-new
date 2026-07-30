@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { useRouter } from '@tanstack/react-router';
-import { supabase } from './supabase';
-import type { Usuario } from './types';
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "@tanstack/react-router";
+import { supabase, isConfigured } from "./supabase";
+import type { Usuario } from "./types";
 
 interface AuthContextType {
   user: Usuario | null;
@@ -23,13 +23,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    if (!isConfigured) {
+      setLoading(false);
+      return;
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         loadUser(session.user.id);
       } else {
         setLoading(false);
       }
-    });
+    }).catch(() => setLoading(false));
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         loadUser(session.user.id);
@@ -38,30 +43,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     });
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
 
   async function loadUser(authId: string) {
-    const { data } = await supabase
-      .from('usuarios')
-      .select('*')
-      .eq('id', authId)
-      .single();
-    if (data) {
-      setUser(data);
+    try {
+      const { data } = await supabase
+        .from("usuarios")
+        .select("*")
+        .eq("id", authId)
+        .single();
+      if (data) setUser(data);
+    } catch {
+      // ignore
     }
     setLoading(false);
   }
 
   async function signIn(email: string, password: string) {
+    if (!isConfigured) return { error: "Supabase não configurado. Configure VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY." };
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       const { data } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('id', session.user.id)
+        .from("usuarios")
+        .select("*")
+        .eq("id", session.user.id)
         .single();
       if (data) setUser(data);
     }
@@ -71,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     await supabase.auth.signOut();
     setUser(null);
-    router.navigate({ to: '/login' });
+    router.navigate({ to: "/login" });
   }
 
   return (
