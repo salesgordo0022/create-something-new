@@ -42,10 +42,7 @@ function GestaoPage() {
   const [modalAberto, setModalAberto] = useState(false);
   const [criando, setCriando] = useState(false);
   const [linkGerado, setLinkGerado] = useState("");
-  const [novoForm, setNovoForm] = useState({
-    nome_razao: "", cpf_cnpj: "", email: "", telefone: "",
-    municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física",
-  });
+  const [novoNome, setNovoNome] = useState("");
 
   useEffect(() => {
     if (user) loadData();
@@ -60,10 +57,9 @@ function GestaoPage() {
   }
 
   async function handleCriar() {
-    if (!novoForm.nome_razao.trim()) { toast.error("Informe o nome do produtor"); return; }
     setCriando(true);
     try {
-      const result = await criarProdutorELink(novoForm);
+      const result = await criarProdutorELink({ nome_razao: novoNome || "Produtor" });
       const link = `${window.location.origin}/formulario/${result.codigo}`;
       setLinkGerado(link);
       await navigator.clipboard.writeText(link);
@@ -89,7 +85,7 @@ function GestaoPage() {
   function resetModal() {
     setModalAberto(false);
     setLinkGerado("");
-    setNovoForm({ nome_razao: "", cpf_cnpj: "", email: "", telefone: "", municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física" });
+    setNovoNome("");
   }
 
   if (authLoading || loading) return (
@@ -302,48 +298,10 @@ function GestaoPage() {
               </div>
             ) : (
               <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Nome / Razão Social *</label>
-                    <input className="agro-input py-2 px-3 text-sm w-full" value={novoForm.nome_razao} onChange={e => setNovoForm(p => ({ ...p, nome_razao: e.target.value }))} placeholder="Nome completo ou razão social" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">CPF/CNPJ</label>
-                    <input className="agro-input py-2 px-3 text-sm w-full" value={novoForm.cpf_cnpj} onChange={e => setNovoForm(p => ({ ...p, cpf_cnpj: e.target.value }))} placeholder="000.000.000-00" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Tipo</label>
-                    <select className="agro-input py-2 px-3 text-sm w-full" value={novoForm.tipo} onChange={e => setNovoForm(p => ({ ...p, tipo: e.target.value }))}>
-                      <option>Pessoa Física</option>
-                      <option>Pessoa Jurídica</option>
-                      <option>Cooperativa</option>
-                      <option>Agroindústria</option>
-                      <option>Produtor Integrado</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">E-mail</label>
-                    <input className="agro-input py-2 px-3 text-sm w-full" type="email" value={novoForm.email} onChange={e => setNovoForm(p => ({ ...p, email: e.target.value }))} placeholder="email@exemplo.com" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Telefone</label>
-                    <input className="agro-input py-2 px-3 text-sm w-full" value={novoForm.telefone} onChange={e => setNovoForm(p => ({ ...p, telefone: e.target.value }))} placeholder="(11) 99999-9999" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Município</label>
-                    <input className="agro-input py-2 px-3 text-sm w-full" value={novoForm.municipio} onChange={e => setNovoForm(p => ({ ...p, municipio: e.target.value }))} placeholder="Cidade" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Estado</label>
-                    <select className="agro-input py-2 px-3 text-sm w-full" value={novoForm.estado} onChange={e => setNovoForm(p => ({ ...p, estado: e.target.value }))}>
-                      <option value="">Selecione</option>
-                      {["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].map(u => <option key={u} value={u}>{u}</option>)}
-                    </select>
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Atividade Principal</label>
-                    <input className="agro-input py-2 px-3 text-sm w-full" value={novoForm.atividade_principal} onChange={e => setNovoForm(p => ({ ...p, atividade_principal: e.target.value }))} placeholder="Ex: Soja, Pecuária, Leite..." />
-                  </div>
+                <p className="text-sm text-gray-600">Gere um link para o produtor preencher o formulário de diagnóstico tributário.</p>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Identificação (opcional)</label>
+                  <input className="agro-input py-2 px-3 text-sm w-full" value={novoNome} onChange={e => setNovoNome(e.target.value)} placeholder="Nome do produtor para referência" />
                 </div>
                 <div className="flex gap-3 pt-2">
                   <button onClick={resetModal} className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
