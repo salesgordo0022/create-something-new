@@ -1,13 +1,8 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "../lib/auth-context";
-import { supabase } from "../lib/supabase";
-import { getFormulariosCompletos, getEstatisticas, criarProdutorELink, getCodigoByFormId } from "../lib/form-service";
+import { getFormulariosCompletos, criarProdutorELink, getCodigoByFormId } from "../lib/form-service";
 import { toast } from "sonner";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
-} from "recharts";
 
 export const Route = createFileRoute("/gestao/")({
   component: GestaoPage,
@@ -19,7 +14,6 @@ interface FormComProdutor {
   produtores: { nome_razao: string; cpf_cnpj?: string; municipio?: string; estado?: string; atividade_principal?: string; tipo?: string };
 }
 
-const COLORS = ['#1a5c2a', '#4caf50', '#c9a84c', '#5d4037', '#81c784', '#a5d6a7', '#f5e6b8', '#dc2626'];
 const STATUS_OPTIONS = ['cadastro_criado','link_enviado','aguardando_preenchimento','em_preenchimento','formulario_enviado','em_analise','aguardando_documentos','aguardando_retorno_produtor','reuniao_agendada','diagnostico_concluido','apresentado_ao_produtor','arquivado'];
 const STATUS_LABELS: Record<string, string> = {
   cadastro_criado: 'Cadastro Criado', link_enviado: 'Link Enviado', aguardando_preenchimento: 'Aguardando Preenchimento',
@@ -33,7 +27,6 @@ function GestaoPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const router = useRouter();
   const [forms, setForms] = useState<FormComProdutor[]>([]);
-  const [estatisticas, setEstatisticas] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filtroNome, setFiltroNome] = useState("");
@@ -50,9 +43,8 @@ function GestaoPage() {
 
   async function loadData() {
     setLoading(true);
-    const [formsData, stats] = await Promise.all([getFormulariosCompletos(), getEstatisticas()]);
+    const formsData = await getFormulariosCompletos();
     setForms(formsData as FormComProdutor[]);
-    setEstatisticas(stats);
     setLoading(false);
   }
 
@@ -101,19 +93,7 @@ function GestaoPage() {
     return true;
   });
 
-  const statsCards = [
-    { label: "Total de Formulários", value: estatisticas.total || 0, color: "text-blue-600" },
-    { label: "Enviados", value: estatisticas.porStatus?.formulario_enviado || 0, color: "text-green-600" },
-    { label: "Em Análise", value: estatisticas.porStatus?.em_analise || 0, color: "text-yellow-600" },
-    { label: "Diagnósticos Concluídos", value: estatisticas.porStatus?.diagnostico_concluido || 0, color: "text-emerald-600" },
-    { label: "Acima de R$ 3,6M", value: estatisticas.acima3600 || 0, color: "text-orange-600" },
-    { label: "Aguardando", value: estatisticas.porStatus?.aguardando_preenchimento || 0, color: "text-gray-600" },
-  ];
-
-  const statusChartData = Object.entries(estatisticas.porStatus || {}).map(([k, v]) => ({ name: STATUS_LABELS[k] || k, value: v }));
-  const estadoChartData = Object.entries(estatisticas.porEstado || {}).map(([k, v]) => ({ name: k, value: v }));
-  const atividadeChartData = Object.entries(estatisticas.porAtividade || {}).map(([k, v]) => ({ name: k, value: v }));
-  const receitaChartData = Object.entries(estatisticas.porReceita || {}).map(([k, v]) => ({ name: k, value: v }));
+  const estadosDisponiveis = [...new Set(forms.map(f => f.produtores?.estado).filter(Boolean))] as string[];
 
   return (
     <div className="min-h-screen flex" style={{ background: '#f2efe8' }}>
@@ -190,58 +170,12 @@ function GestaoPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 mb-10">
-            {statsCards.map((s, i) => (
-              <div key={s.label} className="bg-white rounded-2xl agro-shadow-md border border-gray-100 p-6 card-hover hover:shadow-lg hover:-translate-y-0.5 relative overflow-hidden group">
-                <div className={`absolute top-0 right-0 w-20 h-20 -mr-6 -mt-6 rounded-full opacity-[0.06] transition-transform group-hover:scale-150 ${i % 2 === 0 ? 'bg-[#0d4f1a]' : 'bg-[#e8b830]'}`} />
-                <p className="text-xs font-medium text-gray-500 mb-1.5 tracking-wide uppercase relative">{s.label}</p>
-                <p className={`text-3xl font-bold tracking-tight relative ${s.color}`}>{s.value}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#0d4f1a]/5 to-transparent rounded-full -mr-10 -mt-10" />
-              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide relative">Formulários por Status</h3>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={statusChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
-                  <YAxis /><Tooltip />
-                  <Bar dataKey="value" fill="#0d4f1a" radius={[6,6,0,0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#e8b830]/5 to-transparent rounded-full -mr-10 -mt-10" />
-              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide relative">Produtores por Estado</h3>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart><Pie data={estadoChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>{estadoChartData.map((_,i) => <Cell key={i} fill={COLORS[i%COLORS.length]} />)}</Pie><Tooltip /><Legend /></PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#e67e22]/5 to-transparent rounded-full -mr-10 -mt-10" />
-              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide relative">Produtores por Atividade</h3>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart><Pie data={atividadeChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>{atividadeChartData.map((_,i) => <Cell key={i} fill={COLORS[(i+2)%COLORS.length]} />)}</Pie><Tooltip /><Legend /></PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#5d4037]/5 to-transparent rounded-full -mr-10 -mt-10" />
-              <h3 className="text-sm font-semibold text-gray-900 mb-5 tracking-wide relative">Faixa de Receita</h3>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart><Pie data={receitaChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>{receitaChartData.map((_,i) => <Cell key={i} fill={i===0?'#1a7a2e':'#e8b830'} />)}</Pie><Tooltip /><Legend /></PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
           <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap gap-3 items-center">
               <span className="text-xs font-semibold text-gray-500 tracking-wide uppercase mr-2">Filtrar</span>
               <select className="agro-input py-1.5 px-3 text-sm w-36" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
                 <option value="">Todos estados</option>
-                {Object.keys(estatisticas.porEstado || {}).map(e => <option key={e} value={e}>{e}</option>)}
+                {estadosDisponiveis.map(e => <option key={e} value={e}>{e}</option>)}
               </select>
               <select className="agro-input py-1.5 px-3 text-sm w-44" value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)}>
                 <option value="">Todos status</option>
