@@ -5,6 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-serif: "Merriweather", Georgia, "Times New Roman", serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -104,6 +105,11 @@
     -moz-osx-font-smoothing: grayscale;
   }
   ::selection { background: #0d4f1a; color: white; }
+  h1, h2, h3, h4 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.015em;
+  }
+  input::placeholder, textarea::placeholder { color: #a3a3a3; }
 }
 
 @utility agro-gradient {

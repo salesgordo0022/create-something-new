@@ -192,61 +192,70 @@ function ProdutorPage() {
 
   return (
     <div className="min-h-screen flex" style={{ background: '#f2efe8' }}>
-      <aside className={`fixed lg:sticky top-0 left-0 z-50 w-64 h-screen agro-gradient text-white transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="p-6 border-b border-white/10">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-bold text-sm tracking-wide">Diagnóstico</p>
-              <p className="text-xs text-white/50 tracking-wide">Tributário do Agro</p>
+      <aside className={`fixed lg:sticky top-0 left-0 z-50 w-72 h-screen text-white transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        <div className="relative h-full flex flex-col overflow-hidden" style={{ background: 'linear-gradient(160deg, #0a3d15 0%, #0d4f1a 45%, #123b18 100%)' }}>
+          <img src="https://images.unsplash.com/photo-1585515328337-5f3eb6e2f3f3?w=400&q=60" alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover opacity-[0.08]" />
+          <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0a3d15] to-transparent" />
+          <div className="relative p-6 border-b border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl agro-gradient-warm flex items-center justify-center shadow-lg shadow-black/20 ring-1 ring-white/20">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </div>
+              <div>
+                <p className="font-serif font-bold text-sm tracking-wide">Diagnóstico Tributário</p>
+                <p className="text-[11px] text-[#e8b830]/90 tracking-[0.18em] uppercase">do Agronegócio</p>
+              </div>
             </div>
           </div>
+          <nav className="relative p-4 space-y-1">
+            <Link to="/gestao" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:bg-white/10 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+              <span className="text-sm">Voltar à gestão</span>
+            </Link>
+            <div className="pt-4 border-t border-white/10">
+              <p className="px-4 pt-1 pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">Seções</p>
+              {SECOES.map(sec => {
+                const preenchidos = sec.campos.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
+                const highlight = termo && matchSecao(sec);
+                if (termo && !highlight) return null;
+                return (
+                  <button key={sec.id} onClick={() => { setSecaoAtiva(sec.id); setAbaAtiva("resumo"); document.getElementById(`sec-${sec.id}`)?.scrollIntoView({ behavior: 'smooth' }); }}
+                    className="flex items-center gap-3 w-full px-4 py-2 rounded-xl text-white/60 hover:bg-white/10 transition-colors text-left">
+                    <span className="text-base">{sec.icone}</span>
+                    <span className="text-sm truncate">{sec.titulo}</span>
+                    <span className="ml-auto text-xs text-white/30">{preenchidos}/{sec.campos.length}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
         </div>
-        <nav className="p-3 space-y-1">
-          <Link to="/gestao" className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-white/60 hover:bg-white/5 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-            Voltar
-          </Link>
-          <div className="pt-4 border-t border-white/10">
-            <p className="px-4 text-xs text-white/40 font-semibold uppercase tracking-wider mb-2">Seções</p>
-            {SECOES.map(sec => {
-              const preenchidos = sec.campos.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
-              const highlight = termo && matchSecao(sec);
-              if (termo && !highlight) return null;
-              return (
-                <button key={sec.id} onClick={() => { setSecaoAtiva(sec.id); setAbaAtiva("resumo"); document.getElementById(`sec-${sec.id}`)?.scrollIntoView({ behavior: 'smooth' }); }}
-                  className="flex items-center gap-3 w-full px-4 py-2 rounded-xl text-white/60 hover:bg-white/5 transition-colors text-left">
-                  <span className="text-base">{sec.icone}</span>
-                  <span className="text-sm truncate">{sec.titulo}</span>
-                  <span className="ml-auto text-xs text-white/30">{preenchidos}/{sec.campos.length}</span>
-                </button>
-              );
-            })}
-          </div>
-        </nav>
       </aside>
 
       <div className="flex-1 min-h-screen">
-        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200/60 px-6 py-3 flex items-center justify-between sticky top-0 z-40 gap-4">
-          <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-          </button>
+        <header className="bg-white/85 backdrop-blur-xl border-b border-gray-200/60 px-6 lg:px-8 py-3.5 flex items-center justify-between sticky top-0 z-40 gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <button className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors shrink-0" onClick={() => setSidebarOpen(!sidebarOpen)}>
+              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+            <div className="hidden sm:block shrink-0">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-gray-400 font-semibold">Diagnóstico do Produtor</p>
+            </div>
+          </div>
           <div className="flex items-center gap-4 min-w-0">
-            <div className="w-10 h-10 rounded-full agrogradient flex items-center justify-center text-white text-sm font-bold shrink-0">{produtor.nome_razao?.charAt(0)}</div>
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center font-serif font-bold text-sm text-white shadow-md ring-1 ring-white/60 shrink-0 ${pct >= 100 ? 'bg-gradient-to-br from-[#1a7a2e] to-[#0d4f1a]' : 'bg-gradient-to-br from-[#e8b830] to-[#d4a017] text-[#0d4f1a] ring-white'}`}>{produtor.nome_razao?.charAt(0)}</div>
             <div className="min-w-0">
               <h1 className="text-lg font-bold text-gray-900 tracking-tight truncate">{produtor.nome_razao}</h1>
               <p className="text-xs text-gray-500 truncate">{produtor.cpf_cnpj}{produtor.municipio ? ` • ${produtor.municipio}/${produtor.estado}` : ""}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 ml-auto">
-            <div className="relative w-48 lg:w-64">
+            <div className="relative w-44 lg:w-64 hidden sm:block">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               <input type="text" placeholder="Pesquisar perguntas..." value={termoBusca} onChange={e => setTermoBusca(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a5c2a]/20 focus:border-[#1a5c2a] transition-all" />
+                className="w-full pl-9 pr-3 py-1.5 text-sm bg-gray-50/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a5c2a]/20 focus:border-[#1a5c2a] focus:bg-white transition-all" />
               {termoBusca && (
                 <button onClick={() => setTermoBusca("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -254,12 +263,12 @@ function ProdutorPage() {
               )}
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs shrink-0">
+          <div className="hidden md:flex items-center gap-2 text-xs shrink-0">
             <span className="text-gray-400">Preenchimento:</span>
             <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-to-r from-[#1a5c2a] to-[#4caf50] transition-all" style={{ width: `${pct}%` }} />
+              <div className="h-full rounded-full bg-gradient-to-r from-[#0d4f1a] to-[#22c55e] transition-all" style={{ width: `${pct}%` }} />
             </div>
-            <span className="font-medium text-gray-600">{pct}%</span>
+            <span className="font-semibold text-gray-600 tabular-nums">{pct}%</span>
           </div>
         </header>
 
