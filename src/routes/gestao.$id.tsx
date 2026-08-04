@@ -145,6 +145,98 @@ function ProdutorPage() {
     return sec.titulo.toLowerCase().includes(termo) || sec.campos.some(matchField);
   }
 
+  interface ResultadoBusca {
+    grupo: string;
+    aba: string;
+    secaoId?: string;
+    label: string;
+    valor: string;
+    sub?: string;
+  }
+
+  function irParaResultado(aba: string, secaoId?: string) {
+    setTermoBusca("");
+    setAbaAtiva(aba);
+    if (secaoId) {
+      setSecaoAtiva(secaoId);
+      setTimeout(() => document.getElementById(`sec-${secaoId}`)?.scrollIntoView({ behavior: "smooth" }), 80);
+    }
+  }
+
+  const resultados: ResultadoBusca[] = (() => {
+    if (!termo) return [];
+    const out: ResultadoBusca[] = [];
+    const t = termo;
+
+    const prod: [string, any, string][] = [
+      ["Nome / Razão Social", produtor.nome_razao, "resumo"],
+      ["CPF / CNPJ", produtor.cpf_cnpj, "resumo"],
+      ["Município / UF", produtor.municipio ? `${produtor.municipio}/${produtor.estado || ""}` : produtor.estado, "resumo"],
+      ["Atividade principal", produtor.atividade_principal, "resumo"],
+      ["Tipo", produtor.tipo, "resumo"],
+    ];
+    for (const [label, val, aba] of prod) {
+      if (val && String(val).toLowerCase().includes(t)) out.push({ grupo: "Produtor", aba, label, valor: String(val) });
+    }
+    if (formulario.protocolo && formulario.protocolo.toLowerCase().includes(t)) out.push({ grupo: "Produtor", aba: "resumo", label: "Protocolo", valor: formulario.protocolo });
+    const stP = STATUS_PREENCHIMENTO[formulario.status_preenchimento]?.label;
+    if (stP && stP.toLowerCase().includes(t)) out.push({ grupo: "Produtor", aba: "resumo", label: "Status do preenchimento", valor: stP });
+    const stD = STATUS_DIAGNOSTICO[formulario.status_diagnostico]?.label;
+    if (stD && stD.toLowerCase().includes(t)) out.push({ grupo: "Produtor", aba: "resumo", label: "Status do diagnóstico", valor: stD });
+
+    for (const sec of SECOES) {
+      for (const c of sec.campos) {
+        const texto = formatValor(respMap[c.campo], c.format);
+        if (!texto) continue;
+        if ((c.label + " " + texto).toLowerCase().includes(t)) out.push({ grupo: "Formulário", aba: "dados", secaoId: sec.id, label: c.label, valor: texto });
+      }
+    }
+
+    if (diagnostico) {
+      const campos: [string, any][] = [
+        ["Enquadramento IBS/CBS", diagnostico.enquadramento_ibs_cbs],
+        ["Nível de risco", diagnostico.nivel_risco],
+        ["Justificativa do enquadramento", diagnostico.justificativa_enquadramento],
+        ["Parecer conclusivo", diagnostico.parecer_conclusivo],
+        ["Próxima ação", diagnostico.proxima_acao],
+        ["Data do diagnóstico", formatData(diagnostico.data_diagnostico)],
+        ["Retorno previsto", formatData(diagnostico.data_prevista_retorno)],
+      ];
+      for (const [label, val] of campos) {
+        if (val && String(val).toLowerCase().includes(t)) out.push({ grupo: "Diagnóstico", aba: "diagnostico", label, valor: String(val) });
+      }
+      for (const a of acoes || []) {
+        if (a.descricao && a.descricao.toLowerCase().includes(t)) out.push({ grupo: "Diagnóstico", aba: "diagnostico", label: "Ação prioritária", valor: a.descricao, sub: a.concluida ? "Concluída" : `Prazo: ${formatData(a.prazo)}` });
+      }
+      for (const o of oportunidades || []) {
+        if (o.descricao && o.descricao.toLowerCase().includes(t)) out.push({ grupo: "Diagnóstico", aba: "diagnostico", label: `Oportunidade (${o.prioridade || "média"})`, valor: o.descricao });
+      }
+    }
+
+    for (const d of documentos || []) {
+      const comb = `${d.categoria || ""} ${d.nome_arquivo || ""} ${STATUS_DOCUMENTO[d.status]?.label || d.status || ""}`.toLowerCase();
+      if (comb.includes(t)) out.push({ grupo: "Documentos", aba: "documentos", label: d.categoria || "Documento", valor: d.nome_arquivo || "", sub: STATUS_DOCUMENTO[d.status]?.label || d.status });
+    }
+
+    for (const o of observacoes || []) {
+      const comb = `${o.texto || ""} ${o.categoria || ""}`.toLowerCase();
+      if (comb.includes(t)) out.push({ grupo: "Observações", aba: "registros", label: o.categoria || "Observação", valor: o.texto || "", sub: o.importante ? "Importante" : undefined });
+    }
+
+    for (const p of pendencias || []) {
+      if (p.descricao && p.descricao.toLowerCase().includes(t)) out.push({ grupo: "Pendências", aba: "registros", label: TIPOS_PENDENCIA[p.tipo] || p.tipo || "Pendência", valor: p.descricao, sub: p.resolvida ? "Resolvida" : "Pendente" });
+    }
+
+    for (const h of historico || []) {
+      const comb = `${h.acao || ""} ${h.descricao || ""}`.toLowerCase();
+      if (comb.includes(t)) out.push({ grupo: "Histórico", aba: "registros", label: h.acao || "Atividade", valor: h.descricao || "", sub: formatData(h.created_at) });
+    }
+
+    return out;
+  })();
+
+  const grupos = [...new Set(resultados.map(r => r.grupo))].map(g => ({ grupo: g, itens: resultados.filter(r => r.grupo === g) }));
+
   function iniciarEdicao() {
     setDiagForm({
       enquadramento_ibs_cbs: diagnostico?.enquadramento_ibs_cbs || "",
@@ -347,16 +439,6 @@ function ProdutorPage() {
               </p>
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <div className="relative hidden sm:block">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <input type="text" placeholder="Pesquisar em todos os dados..." value={termoBusca} onChange={e => setTermoBusca(e.target.value)}
-                  className="w-44 lg:w-56 pl-9 pr-8 py-1.5 text-sm bg-gray-50/80 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1a5c2a]/20 focus:border-[#1a5c2a] focus:bg-white transition-all" />
-                {termoBusca && (
-                  <button onClick={() => setTermoBusca("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
-                )}
-              </div>
               <button onClick={exportarCSV} title="Exportar CSV"
                 className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-gray-700 bg-gray-50 ring-1 ring-gray-200 hover:bg-gray-100 transition-all">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -381,6 +463,67 @@ function ProdutorPage() {
         {sidebarOpen && <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
         <main className="p-6 lg:p-8 max-w-6xl mx-auto">
+          <div className="relative mb-5">
+            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input
+              type="text"
+              value={termoBusca}
+              onChange={e => setTermoBusca(e.target.value)}
+              placeholder="Pesquisar qualquer informação deste produtor — formulário, diagnóstico, documentos, registros..."
+              className="w-full pl-11 pr-14 py-2.5 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1a5c2a]/20 focus:border-[#1a5c2a] transition-all"
+            />
+            {termoBusca ? (
+              <button onClick={() => setTermoBusca("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            ) : (
+              <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-semibold uppercase tracking-wide text-gray-300 pointer-events-none">Busca</span>
+            )}
+          </div>
+
+          {termoBusca ? (
+            <div className="bg-white rounded-2xl agro-shadow-sm border border-gray-100 overflow-hidden mb-6">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <h3 className="font-semibold text-gray-900">Resultados da pesquisa</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">{resultados.length} resultado(s) para "<span className="font-medium text-gray-600">{termoBusca}</span>"</p>
+                </div>
+                <button onClick={() => setTermoBusca("")} className="text-xs font-semibold text-[#1a5c2a] hover:underline">Limpar busca</button>
+              </div>
+              {resultados.length > 0 ? (
+                <div className="divide-y divide-gray-50">
+                  {grupos.map(g => (
+                    <div key={g.grupo}>
+                      <div className="px-5 pt-4 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-gray-400 flex items-center gap-2">
+                        {g.grupo}
+                        <span className="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-gray-100 text-[10px] font-bold text-gray-500">{g.itens.length}</span>
+                      </div>
+                      {g.itens.map((r, i) => (
+                        <button key={`${g.grupo}-${i}`} onClick={() => irParaResultado(r.aba, r.secaoId)} className="w-full px-5 py-3 flex items-center gap-3 hover:bg-gray-50/80 text-left transition-colors">
+                          <span className="shrink-0 w-9 h-9 rounded-xl bg-[#f2efe8] flex items-center justify-center text-sm">🔍</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs text-gray-400">{r.label}</p>
+                            <p className="text-sm font-medium text-gray-800 leading-snug">{highlightText(r.valor, termoBusca)}</p>
+                            {r.sub && <p className="text-xs text-gray-400 mt-0.5">{r.sub}</p>}
+                          </div>
+                          <span className="shrink-0 text-xs font-semibold text-[#1a5c2a] whitespace-nowrap">Abrir →</span>
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-5 py-12 text-center">
+                  <div className="w-12 h-12 mx-auto rounded-2xl bg-[#f2efe8] flex items-center justify-center mb-3">
+                    <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                  </div>
+                  <p className="text-sm text-gray-500 font-medium">Nenhum resultado encontrado</p>
+                  <p className="text-xs text-gray-400 mt-1">Tente outro termo ou limpe a busca para ver todos os dados.</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
           <div className="border-b border-gray-200/80 mb-6 overflow-x-auto">
             <div className="flex gap-1 min-w-max">
               {abas.map(aba => (
@@ -963,6 +1106,8 @@ function ProdutorPage() {
                 )}
               </div>
             </div>
+          )}
+            </>
           )}
         </main>
       </div>
