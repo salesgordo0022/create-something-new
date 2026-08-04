@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { getFormularioById, salvarResposta, enviarFormulario } from "../../lib/form-service";
+import { formatValor } from "../../lib/form-secoes";
 import { maskCpf, maskCnpj, maskPhone } from "../../lib/masks";
 import type { Resposta, Produtor, Formulario } from "../../lib/types";
 
@@ -588,9 +589,9 @@ function Campo({
 }
 
 function Etapa1({ respostas, updateField, handleMaskedInput, getMaskOpts }: any) {
-  const [mostrarIE, setMostrarIE] = useState(respostas.etapa1_possui_ie === "sim");
-  const [mostrarCAEPF, setMostrarCAEPF] = useState(respostas.etapa1_possui_caepf === "sim");
-  const [mostrarEstadosOp, setMostrarEstadosOp] = useState(respostas.etapa1_mult_estados === "sim");
+  const [mostrarIE, setMostrarIE] = useState(respostas.etapa1_possui_ie === true || respostas.etapa1_possui_ie === "SIM");
+  const [mostrarCAEPF, setMostrarCAEPF] = useState(respostas.etapa1_possui_caepf === true || respostas.etapa1_possui_caepf === "SIM");
+  const [mostrarEstadosOp, setMostrarEstadosOp] = useState(respostas.etapa1_mult_estados === true || respostas.etapa1_mult_estados === "SIM");
   const [mostrarOutraAtv, setMostrarOutraAtv] = useState(respostas.etapa1_atividade === "Outra");
 
   return (
@@ -679,7 +680,7 @@ function Etapa1({ respostas, updateField, handleMaskedInput, getMaskOpts }: any)
           respostas={respostas}
           updateField={(c: string, v: string) => {
             updateField(c, v);
-            setMostrarEstadosOp(v === "sim");
+            setMostrarEstadosOp(v === "SIM");
           }}
           options={["SIM", "NÃO"]}
         />
@@ -698,7 +699,7 @@ function Etapa1({ respostas, updateField, handleMaskedInput, getMaskOpts }: any)
           respostas={respostas}
           updateField={(c: string, v: string) => {
             updateField(c, v);
-            setMostrarIE(v === "sim");
+            setMostrarIE(v === "SIM");
           }}
           options={["SIM", "NÃO"]}
         />
@@ -717,7 +718,7 @@ function Etapa1({ respostas, updateField, handleMaskedInput, getMaskOpts }: any)
           respostas={respostas}
           updateField={(c: string, v: string) => {
             updateField(c, v);
-            setMostrarCAEPF(v === "sim");
+            setMostrarCAEPF(v === "SIM");
           }}
           options={["SIM", "NÃO"]}
         />
@@ -808,7 +809,7 @@ function Etapa2({ respostas, updateField }: any) {
             updateField={updateField}
             options={["SIM", "NÃO"]}
           />
-          {respostas.etapa2_receitas_nao_rurais === "SIM" && (
+          {(respostas.etapa2_receitas_nao_rurais === true || respostas.etapa2_receitas_nao_rurais === "SIM") && (
             <Campo
               label="Quais?"
               campo="etapa2_atividades_nao_rurais"
@@ -825,9 +826,9 @@ function Etapa2({ respostas, updateField }: any) {
 }
 
 function Etapa3({ respostas, updateField }: any) {
-  const [mostraIntegrador, setMostraIntegrador] = useState(respostas.etapa3_integrado === "SIM");
+  const [mostraIntegrador, setMostraIntegrador] = useState(respostas.etapa3_integrado === true || respostas.etapa3_integrado === "SIM");
   const [mostraCooperativa, setMostraCooperativa] = useState(
-    respostas.etapa3_cooperativa === "SIM",
+    respostas.etapa3_cooperativa === true || respostas.etapa3_cooperativa === "SIM",
   );
 
   return (
@@ -1067,7 +1068,7 @@ function Etapa4({ respostas, updateField }: any) {
               updateField={updateField}
               options={["SIM", "NÃO"]}
             />
-            {respostas.etapa4_fundo_estadual === "SIM" && (
+            {(respostas.etapa4_fundo_estadual === true || respostas.etapa4_fundo_estadual === "SIM") && (
               <Campo
                 label="Qual estado?"
                 campo="etapa4_fundo_estado"
@@ -1196,7 +1197,7 @@ function Etapa5({ respostas, updateField }: any) {
               updateField={updateField}
               options={["SIM", "NÃO"]}
             />
-            {respostas.etapa5_holding === "SIM" && (
+            {(respostas.etapa5_holding === true || respostas.etapa5_holding === "SIM") && (
               <Campo
                 label="Descrição da estrutura"
                 campo="etapa5_holding_descricao"
@@ -1487,7 +1488,7 @@ function Etapa7({ respostas, updateField }: any) {
               respostas[c.campo] ? (
                 <div key={c.campo}>
                   <span className="text-xs text-gray-400">{c.label}:</span>
-                  <p className="text-sm text-gray-800 font-medium">{String(respostas[c.campo])}</p>
+                  <p className="text-sm text-gray-800 font-medium">{formatValor(respostas[c.campo])}</p>
                 </div>
               ) : null,
             )}

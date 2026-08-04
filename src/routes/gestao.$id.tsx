@@ -8,7 +8,7 @@ import {
   adicionarPendencia,
   resolverPendencia,
 } from "../lib/form-service";
-import { SECOES, formatValor, isSimNao, getBadgeColor, formatData, exportCSV, totalCampos } from "../lib/form-secoes";
+import { SECOES, formatValor, isSimNao, getBadgeColor, formatData, exportCSV, campoCondicionalAtivo } from "../lib/form-secoes";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/gestao/$id")({
@@ -128,8 +128,9 @@ function ProdutorPage() {
   const respMap: Record<string, any> = {};
   for (const r of respostas) respMap[r.campo] = r.valor;
 
-  const totalRespondidas = SECOES.flatMap((s) => s.campos).filter((c) => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
-  const totalCamposCount = totalCampos();
+  const camposVisiveis = SECOES.flatMap((s) => s.campos).filter((c) => campoCondicionalAtivo(c.campo, respMap));
+  const totalRespondidas = camposVisiveis.filter((c) => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
+  const totalCamposCount = camposVisiveis.length;
   const pct = totalCamposCount > 0 ? Math.round((totalRespondidas / totalCamposCount) * 100) : (formulario.percentual_preenchido || 0);
 
   const termo = termoBusca.toLowerCase().trim();
@@ -142,7 +143,7 @@ function ProdutorPage() {
 
   function matchSecao(sec: typeof SECOES[number]): boolean {
     if (!termo) return true;
-    return sec.titulo.toLowerCase().includes(termo) || sec.campos.some(matchField);
+    return sec.titulo.toLowerCase().includes(termo) || sec.campos.some((c) => campoCondicionalAtivo(c.campo, respMap) && matchField(c));
   }
 
   interface ResultadoBusca {
@@ -186,6 +187,7 @@ function ProdutorPage() {
 
     for (const sec of SECOES) {
       for (const c of sec.campos) {
+        if (!campoCondicionalAtivo(c.campo, respMap)) continue;
         const texto = formatValor(respMap[c.campo], c.format);
         if (!texto) continue;
         if ((c.label + " " + texto).toLowerCase().includes(t)) out.push({ grupo: "Formulário", aba: "dados", secaoId: sec.id, label: c.label, valor: texto });
@@ -404,13 +406,14 @@ function ProdutorPage() {
             <div className="pt-4 border-t border-white/10">
               <p className="px-4 pt-1 pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">Seções do formulário</p>
               {SECOES.map(sec => {
-                const preenchidos = sec.campos.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
+                const camposSecao = sec.campos.filter(c => campoCondicionalAtivo(c.campo, respMap));
+                const preenchidos = camposSecao.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
                 return (
                   <button key={sec.id} onClick={() => { setAbaAtiva("resumo"); setSecaoAtiva(sec.id); setTimeout(() => document.getElementById(`sec-${sec.id}`)?.scrollIntoView({ behavior: 'smooth' }), 50); }}
                     className="flex items-center gap-3 w-full px-4 py-2 rounded-xl text-white/60 hover:bg-white/10 transition-colors text-left">
                     <span className="text-base">{sec.icone}</span>
                     <span className="text-sm truncate">{sec.titulo}</span>
-                    <span className="ml-auto text-xs text-white/30">{preenchidos}/{sec.campos.length}</span>
+                    <span className="ml-auto text-xs text-white/30">{preenchidos}/{camposSecao.length}</span>
                   </button>
                 );
               })}
@@ -558,8 +561,9 @@ function ProdutorPage() {
               </div>
 
               {SECOES.filter(sec => matchSecao(sec)).map(sec => {
-                const preenchidos = sec.campos.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
-                const camposFiltrados = termo ? sec.campos.filter(matchField) : sec.campos;
+                const camposVisiveisSecao = sec.campos.filter(c => campoCondicionalAtivo(c.campo, respMap));
+                const preenchidos = camposVisiveisSecao.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
+                const camposFiltrados = termo ? camposVisiveisSecao.filter(matchField) : camposVisiveisSecao;
                 const temRespostaPreenchida = camposFiltrados.some(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null);
                 const expandida = secaoAtiva === sec.id || (!secaoAtiva && !termo);
                 return (
@@ -569,11 +573,11 @@ function ProdutorPage() {
                       <span className="text-lg">{sec.icone}</span>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate">{highlightText(sec.titulo, termoBusca)}</h3>
-                        <p className="text-xs text-gray-400">{preenchidos} de {sec.campos.length} respondidos</p>
+                        <p className="text-xs text-gray-400">{preenchidos} de {camposVisiveisSecao.length} respondidos</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden hidden sm:block">
-                          <div className="h-full rounded-full bg-gradient-to-r from-[#1a5c2a] to-[#4caf50]" style={{ width: `${sec.campos.length > 0 ? (preenchidos / sec.campos.length) * 100 : 0}%` }} />
+                          <div className="h-full rounded-full bg-gradient-to-r from-[#1a5c2a] to-[#4caf50]" style={{ width: `${camposVisiveisSecao.length > 0 ? (preenchidos / camposVisiveisSecao.length) * 100 : 0}%` }} />
                         </div>
                         <svg className={`w-4 h-4 text-gray-400 transition-transform ${expandida ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                       </div>
@@ -612,19 +616,20 @@ function ProdutorPage() {
           {abaAtiva === "dados" && (
             <div className="space-y-6">
               {SECOES.filter(sec => matchSecao(sec)).map(sec => {
-                const preenchidos = sec.campos.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
-                const camposFiltrados = termo ? sec.campos.filter(matchField) : sec.campos;
+                const camposVisiveisSecao = sec.campos.filter(c => campoCondicionalAtivo(c.campo, respMap));
+                const preenchidos = camposVisiveisSecao.filter(c => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
+                const camposFiltrados = termo ? camposVisiveisSecao.filter(matchField) : camposVisiveisSecao;
                 return (
                   <div key={sec.id} className="bg-white rounded-2xl agro-shadow-sm border border-gray-100 overflow-hidden">
                     <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{sec.icone}</span>
                         <h3 className="font-semibold text-gray-900">{highlightText(sec.titulo, termoBusca)}</h3>
-                        {termo && camposFiltrados.length < sec.campos.length && (
+                        {termo && camposFiltrados.length < camposVisiveisSecao.length && (
                           <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{camposFiltrados.length} resultados</span>
                         )}
                       </div>
-                      <span className="text-xs text-gray-400">{preenchidos}/{sec.campos.length}</span>
+                      <span className="text-xs text-gray-400">{preenchidos}/{camposVisiveisSecao.length}</span>
                     </div>
                     <div className="hidden md:block overflow-x-auto">
                       <table className="w-full text-sm">

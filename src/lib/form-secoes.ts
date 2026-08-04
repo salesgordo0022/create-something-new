@@ -117,6 +117,11 @@ export const CATEGORIAS_DOCUMENTOS = [
 
 export function formatValor(valor: any, format?: string): string | null {
   if (valor === "" || valor === undefined || valor === null) return null;
+  if (typeof valor === "boolean") return valor ? "SIM" : "NÃO";
+  if (valor === "true") return "SIM";
+  if (valor === "false") return "NÃO";
+  if (valor === "sim") return "SIM";
+  if (valor === "não" || valor === "nao") return "NÃO";
   if (format === "currency") {
     const num = typeof valor === "string" ? parseFloat(valor.replace(/\D/g, "")) : Number(valor);
     if (isNaN(num)) return valor;
@@ -125,16 +130,42 @@ export function formatValor(valor: any, format?: string): string | null {
   return String(valor);
 }
 
-const VALORES_SIM_NAO = ["SIM", "NÃO", "sim", "não", "SIM → CONTRIBUINTE", "NÃO → NÃO CONTRIBUINTE"];
+const VALORES_SIM_NAO = ["SIM", "NÃO", "sim", "não", "nao", "true", "false", "SIM → CONTRIBUINTE", "NÃO → NÃO CONTRIBUINTE"];
 
 export function isSimNao(valor: any): boolean {
+  if (typeof valor === "boolean") return true;
   return VALORES_SIM_NAO.includes(String(valor));
 }
 
-export function getBadgeColor(valor: string): string {
-  if (["SIM", "sim", "SIM → CONTRIBUINTE", true].includes(valor as any)) return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (["NÃO", "não", "NÃO → NÃO CONTRIBUINTE", false].includes(valor as any)) return "bg-gray-50 text-gray-500 border-gray-200";
+export function getBadgeColor(valor: any): string {
+  const v = typeof valor === "string" ? valor.toLowerCase() : valor;
+  if (v === true || v === "true" || v === "sim" || v === "sim → contribuinte") return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (v === false || v === "false" || v === "não" || v === "nao" || v === "não → não contribuinte") return "bg-gray-50 text-gray-500 border-gray-200";
   return "bg-blue-50 text-blue-700 border-blue-200";
+}
+
+export const CAMPOS_CONDICIONAIS: Record<string, { pai: string; valorEsperado?: string }> = {
+  etapa1_atividade_outra: { pai: "etapa1_atividade", valorEsperado: "Outra" },
+  etapa1_estados_opera_detalhe: { pai: "etapa1_mult_estados" },
+  etapa1_ie_numero: { pai: "etapa1_possui_ie" },
+  etapa1_caepf_numero: { pai: "etapa1_possui_caepf" },
+  etapa2_atividades_nao_rurais: { pai: "etapa2_receitas_nao_rurais" },
+  etapa3_integrador_nome: { pai: "etapa3_integrado" },
+  etapa3_cooperativa_nome: { pai: "etapa3_cooperativa" },
+  etapa4_fundo_estado: { pai: "etapa4_fundo_estadual" },
+  etapa5_holding_descricao: { pai: "etapa5_holding" },
+};
+
+export function campoCondicionalAtivo(campo: string, respMap: Record<string, any>): boolean {
+  const dep = CAMPOS_CONDICIONAIS[campo];
+  if (!dep) return true;
+  const pai = respMap[dep.pai];
+  if (dep.valorEsperado) {
+    return String(pai ?? "").toLowerCase() === dep.valorEsperado.toLowerCase();
+  }
+  if (typeof pai === "boolean") return pai;
+  const s = String(pai ?? "").toLowerCase();
+  return s === "sim" || s === "true";
 }
 
 export function formatData(valor?: string | null): string {
