@@ -8,7 +8,7 @@ import {
   adicionarPendencia,
   resolverPendencia,
 } from "../lib/form-service";
-import { SECOES, formatValor, isSimNao, getBadgeColor, formatData, exportCSV, campoCondicionalAtivo } from "../lib/form-secoes";
+import { SECOES, CATEGORIAS_DOCUMENTOS, formatValor, isSimNao, getBadgeColor, formatData, exportCSV, campoCondicionalAtivo } from "../lib/form-secoes";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/gestao/$id")({
@@ -132,6 +132,70 @@ function ProdutorPage() {
   const totalRespondidas = camposVisiveis.filter((c) => respMap[c.campo] !== undefined && respMap[c.campo] !== "" && respMap[c.campo] !== null).length;
   const totalCamposCount = camposVisiveis.length;
   const pct = totalCamposCount > 0 ? Math.round((totalRespondidas / totalCamposCount) * 100) : (formulario.percentual_preenchido || 0);
+
+  const eSim = (v: any) => v === true || String(v).toLowerCase() === "sim";
+  const eNao = (v: any) => v === false || ["não", "nao", "false"].includes(String(v).toLowerCase());
+  const valorCampo = (campo: string, format?: "currency" | "number") => formatValor(respMap[campo], format);
+
+  const areaPropria = Number(respMap.etapa5_hectares_proprios) || 0;
+  const areaArrendada = Number(respMap.etapa5_hectares_arrendados) || 0;
+  const areaTotal = areaPropria + areaArrendada;
+  const pendentes = pendencias.filter((p: any) => !p.resolvida).length;
+  const acoesConcluidas = acoes.filter((a: any) => a.concluida).length;
+  const categoriasRecomendadas = CATEGORIAS_DOCUMENTOS.filter((c) => c !== "Outros documentos");
+  const docRecebidosRecomendados = categoriasRecomendadas.filter((c) => documentos.some((d: any) => d.categoria === c)).length;
+  const docFaltantes = categoriasRecomendadas.length - docRecebidosRecomendados;
+
+  const perfilItens: { label: string; valor: string; badge?: boolean }[] = [
+    { label: "Atividade principal", valor: valorCampo("etapa1_atividade") || "—" },
+    {
+      label: "Inscrição Estadual (IE)",
+      valor: eSim(respMap.etapa1_possui_ie) ? valorCampo("etapa1_ie_numero") || "Possui" : "Não possui",
+    },
+    {
+      label: "CAEPF",
+      valor: eSim(respMap.etapa1_possui_caepf) ? valorCampo("etapa1_caepf_numero") || "Possui" : "Não possui",
+    },
+    {
+      label: "Estados de operação",
+      valor: eSim(respMap.etapa1_mult_estados)
+        ? valorCampo("etapa1_estados_opera_detalhe") || "Vários estados"
+        : valorCampo("etapa1_estados_operacao") || "—",
+    },
+    { label: "Receita bruta 2024", valor: valorCampo("etapa2_receita_2024", "currency") || "—" },
+    { label: "Receita bruta 2026", valor: valorCampo("etapa2_receita_2026", "currency") || "—" },
+    { label: "Parcela exportada 2026", valor: valorCampo("etapa2_exportacao_2026", "currency") || "—" },
+    { label: "Área total", valor: areaTotal ? `${areaTotal.toLocaleString("pt-BR")} ha` : "—" },
+    { label: "Exporta diretamente?", valor: eSim(respMap.etapa3_exporta) ? "SIM" : "NÃO", badge: true },
+    { label: "Receitas não rurais?", valor: eSim(respMap.etapa2_receitas_nao_rurais) ? "SIM" : "NÃO", badge: true },
+    { label: "Emite NF-e?", valor: eSim(respMap.etapa4_emite_nfe) ? "SIM" : "NÃO", badge: true },
+    { label: "Recolhe Funrural?", valor: eSim(respMap.etapa4_funrural) ? "SIM" : "NÃO", badge: true },
+    { label: "Fundo estadual (FETHAB etc.)?", valor: eSim(respMap.etapa4_fundo_estadual) ? "SIM" : "NÃO", badge: true },
+    { label: "Holding rural?", valor: eSim(respMap.etapa5_holding) ? "SIM" : "NÃO", badge: true },
+    { label: "Seguro rural?", valor: eSim(respMap.etapa5_seguro) ? "SIM" : "NÃO", badge: true },
+    { label: "Planejamento sucessório?", valor: eSim(respMap.etapa5_sucessorio) ? "SIM" : "NÃO", badge: true },
+  ];
+
+  function destaques(): { tipo: "positivo" | "info" | "alerta"; texto: string }[] {
+    const out: { tipo: "positivo" | "info" | "alerta"; texto: string }[] = [];
+    if (eSim(respMap.etapa3_exporta)) out.push({ tipo: "positivo", texto: "Produtor exporta diretamente — avaliar regimes especiais de exportação e créditos de IBS/CBS." });
+    if (eSim(respMap.etapa2_receitas_nao_rurais)) out.push({ tipo: "info", texto: "Receitas não rurais presentes — avaliar segregação de atividades e enquadramento tributário." });
+    if (eSim(respMap.etapa3_nao_contribuintes)) out.push({ tipo: "alerta", texto: "Operações com não contribuintes — atenção ao destaque e recolhimento do imposto." });
+    if (eSim(respMap.etapa4_fundo_estadual)) out.push({ tipo: "alerta", texto: "Sujeito a FETHAB/FUNDEINFRA/FUNDERSUL — revisar obrigações acessórias estaduais." });
+    if (eSim(respMap.etapa4_funrural)) out.push({ tipo: "info", texto: "Recolhe Funrural — confirmar modalidade e base de cálculo." });
+    if (eSim(respMap.etapa3_integrado)) out.push({ tipo: "info", texto: `Produtor integrado${valorCampo("etapa3_integrador_nome") ? ` (${valorCampo("etapa3_integrador_nome")})` : ""} — verificar enquadramento específico.` });
+    if (eSim(respMap.etapa3_cooperativa)) out.push({ tipo: "info", texto: `Participa de cooperativa${valorCampo("etapa3_cooperativa_nome") ? ` (${valorCampo("etapa3_cooperativa_nome")})` : ""}.` });
+    if (eSim(respMap.etapa5_holding)) out.push({ tipo: "info", texto: "Estrutura de holding rural identificada — avaliar planejamento sucessório e tributário." });
+    if (eSim(respMap.etapa4_debitos)) out.push({ tipo: "alerta", texto: "Há débitos tributários — priorizar regularização fiscal." });
+    if (eSim(respMap.etapa4_parcelamentos)) out.push({ tipo: "alerta", texto: "Possui parcelamentos — verificar situação e impactos no crédito." });
+    if (eNao(respMap.etapa4_certidoes)) out.push({ tipo: "alerta", texto: "Sem certidões negativas — regularizar antes de novas operações." });
+    if (eSim(respMap.etapa5_seguro)) out.push({ tipo: "positivo", texto: "Possui seguro rural — boa prática de proteção patrimonial." });
+    if (eSim(respMap.etapa5_sucessorio)) out.push({ tipo: "positivo", texto: "Planejamento sucessório em curso — estruturação recomendada." });
+    if (pendentes > 0) out.push({ tipo: "alerta", texto: `${pendentes} pendência(s) em aberto no atendimento.` });
+    if (docFaltantes > 0) out.push({ tipo: "info", texto: `Faltam ${docFaltantes} documento(s) recomendado(s) para a análise completa.` });
+    return out;
+  }
+  const destaquesList = destaques();
 
   const termo = termoBusca.toLowerCase().trim();
 
@@ -545,19 +609,58 @@ function ProdutorPage() {
                 {[
                   { label: "Tipo", value: produtor.tipo || "—", icon: "👤" },
                   { label: "Atividade", value: produtor.atividade_principal || "—", icon: "🚜" },
-                  { label: "Receita bruta 2026", value: formatValor(respMap.etapa2_receita_2026, "currency") || "—", icon: "📊" },
+                  { label: "Receita bruta 2026", value: valorCampo("etapa2_receita_2026", "currency") || "—", icon: "📊" },
+                  { label: "Área total", value: areaTotal ? `${areaTotal.toLocaleString("pt-BR")} ha` : "—", icon: "🏞️" },
                   { label: "Enquadramento IBS/CBS", value: diagnostico?.enquadramento_ibs_cbs || "—", icon: "📋" },
-                  { label: "Nível de risco", value: diagnostico?.nivel_risco || "—", icon: "⚠️" },
-                  { label: "Campos preenchidos", value: `${totalRespondidas}/${totalCamposCount}`, icon: "✅" },
+                  { label: "Nível de risco", value: diagnostico?.nivel_risco || "—", icon: "⚠️", cls: diagnostico?.nivel_risco === "Crítico" || diagnostico?.nivel_risco === "Alto" ? "text-red-600" : diagnostico?.nivel_risco === "Médio" ? "text-amber-600" : "" },
                 ].map(s => (
                   <div key={s.label} className="bg-white rounded-2xl agro-shadow-sm border border-gray-100 p-4 card-hover">
                     <p className="text-xs font-semibold text-gray-500 tracking-wide uppercase mb-1.5 truncate">{s.label}</p>
                     <div className="flex items-center gap-2">
                       <span className="text-base">{s.icon}</span>
-                      <p className="text-sm font-bold text-gray-800 truncate">{s.value}</p>
+                      <p className={`text-sm font-bold text-gray-800 truncate ${s.cls || ""}`}>{s.value}</p>
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+                <div className="bg-white rounded-2xl agro-shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <span className="text-base">👤</span>
+                    <h3 className="font-semibold text-gray-900">Perfil do Produtor</h3>
+                    <span className="ml-auto text-[10px] font-semibold uppercase tracking-wide text-gray-400 bg-gray-50 px-2.5 py-1 rounded-full hidden sm:inline-block">Dados do formulário</span>
+                  </div>
+                  <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+                    {perfilItens.map((it, i) => (
+                      <div key={i} className="flex items-start justify-between gap-3 py-0.5">
+                        <p className="text-xs text-gray-400">{it.label}</p>
+                        {it.badge ? (
+                          <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border shrink-0 ${getBadgeColor(it.valor)}`}>{it.valor}</span>
+                        ) : (
+                          <p className="text-sm font-semibold text-gray-800 text-right break-words">{it.valor}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-2xl agro-shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
+                    <span className="text-base">💡</span>
+                    <h3 className="font-semibold text-gray-900">Destaques e pontos de atenção</h3>
+                  </div>
+                  <div className="p-5 space-y-2.5">
+                    {destaquesList.length > 0 ? destaquesList.map((d, i) => (
+                      <div key={i} className={`flex items-start gap-2.5 rounded-xl border p-3 ${d.tipo === 'alerta' ? 'border-amber-200 bg-amber-50/60' : d.tipo === 'positivo' ? 'border-emerald-200 bg-emerald-50/60' : 'border-blue-200 bg-blue-50/60'}`}>
+                        <span className="text-sm shrink-0 leading-4">{d.tipo === 'alerta' ? '⚠️' : d.tipo === 'positivo' ? '✅' : 'ℹ️'}</span>
+                        <p className={`text-xs leading-relaxed ${d.tipo === 'alerta' ? 'text-amber-800' : d.tipo === 'positivo' ? 'text-emerald-800' : 'text-blue-800'}`}>{d.texto}</p>
+                      </div>
+                    )) : (
+                      <p className="text-sm text-gray-400 italic text-center py-6">Nenhum ponto de atenção identificado ainda.</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {SECOES.filter(sec => matchSecao(sec)).map(sec => {
@@ -763,8 +866,16 @@ function ProdutorPage() {
 
               <div className="bg-white rounded-2xl agro-shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-900">Documentos recomendados</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Lista de documentos esperados para análise completa</p>
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Documentos recomendados</h3>
+                      <p className="text-xs text-gray-400 mt-0.5">Lista de documentos esperados para análise completa</p>
+                    </div>
+                    <span className="text-xs font-semibold text-[#1a5c2a]">{docRecebidosRecomendados}/{categoriasRecomendadas.length} recebidos</span>
+                  </div>
+                  <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-[#1a5c2a] to-[#4caf50] transition-all" style={{ width: `${categoriasRecomendadas.length > 0 ? (docRecebidosRecomendados / categoriasRecomendadas.length) * 100 : 0}%` }} />
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-5">
                   {["Cartão do CNPJ", "CPF e documento de identificação", "Inscrição estadual", "Comprovante do CAEPF", "Declaração do Imposto de Renda", "LCDPR", "Livro Caixa", "Notas fiscais", "Contratos de arrendamento", "Contratos de compra e venda", "Documentos dos imóveis rurais", "ITR", "CCIR", "CAR", "Certidões", "Comprovantes de financiamentos"].map(cat => {
@@ -938,7 +1049,10 @@ function ProdutorPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           {acoes.length > 0 && (
                             <div>
-                              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Ações prioritárias</h4>
+                              <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ações prioritárias</h4>
+                                <span className="text-xs font-semibold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-full">{acoesConcluidas}/{acoes.length} concluídas</span>
+                              </div>
                               <ul className="space-y-2">
                                 {acoes.map((a: any) => (
                                   <li key={a.id} className="flex items-start gap-2.5 rounded-xl border border-gray-100 bg-white p-3">
@@ -946,7 +1060,7 @@ function ProdutorPage() {
                                       {a.concluida && <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                                     </span>
                                     <div>
-                                      <p className="text-sm text-gray-800">{a.descricao}</p>
+                                      <p className={`text-sm ${a.concluida ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{a.descricao}</p>
                                       {a.prazo && <p className="text-xs text-gray-400 mt-0.5">Prazo: {formatData(a.prazo)}</p>}
                                     </div>
                                   </li>
