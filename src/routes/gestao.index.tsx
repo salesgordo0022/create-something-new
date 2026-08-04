@@ -49,9 +49,7 @@ function GestaoPage() {
   const [filtroNome, setFiltroNome] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("");
-  const [modalAberto, setModalAberto] = useState(false);
   const [criando, setCriando] = useState(false);
-  const [novoNome, setNovoNome] = useState("");
 
   useEffect(() => {
     if (user) loadData();
@@ -67,20 +65,13 @@ function GestaoPage() {
   async function handleCriar() {
     setCriando(true);
     try {
-      const result = await criarProdutorEFormulario({ nome_razao: novoNome || "Produtor" });
-      setModalAberto(false);
-      setNovoNome("");
+      const result = await criarProdutorEFormulario({ nome_razao: "Produtor" });
       toast.success("Formulário criado!");
       router.navigate({ to: "/gestao/formulario/$id", params: { id: result.formId } });
     } catch (e: any) {
       toast.error(e.message || "Erro ao criar");
     }
     setCriando(false);
-  }
-
-  function resetModal() {
-    setModalAberto(false);
-    setNovoNome("");
   }
 
   function exportarCSV() {
@@ -198,9 +189,13 @@ function GestaoPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
               CSV
             </button>
-            <button onClick={() => setModalAberto(true)} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#0d4f1a] shadow-md shadow-amber-500/20 hover:shadow-lg transition-all" style={{ background: 'linear-gradient(135deg, #e8b830, #d4a017)' }}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Novo Diagnóstico
+            <button onClick={handleCriar} disabled={criando} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#0d4f1a] shadow-md shadow-amber-500/20 hover:shadow-lg transition-all disabled:opacity-60" style={{ background: 'linear-gradient(135deg, #e8b830, #d4a017)' }}>
+              {criando ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.37 0 0 5.37 0 12h4z" /></svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              )}
+              {criando ? "Criando..." : "Novo Diagnóstico"}
             </button>
           </div>
         </header>
@@ -349,7 +344,7 @@ function GestaoPage() {
                           </div>
                           <p className="font-serif font-bold text-gray-700">Nenhum diagnóstico encontrado</p>
                           <p className="text-sm text-gray-400 mt-1">Crie um novo diagnóstico ou ajuste os filtros para visualizar produtores.</p>
-                          <button onClick={() => setModalAberto(true)} className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-[#0d4f1a]/20 hover:shadow-lg transition-all" style={{ background: 'linear-gradient(135deg, #0d4f1a, #1a7a2e)' }}>
+                          <button onClick={handleCriar} disabled={criando} className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md shadow-[#0d4f1a]/20 hover:shadow-lg transition-all disabled:opacity-60" style={{ background: 'linear-gradient(135deg, #0d4f1a, #1a7a2e)' }}>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                             Novo Diagnóstico
                           </button>
@@ -363,37 +358,6 @@ function GestaoPage() {
           </div>
         </main>
       </div>
-
-      {modalAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm p-4" onClick={resetModal}>
-          <div className="bg-white rounded-3xl agro-shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="px-7 pt-7 pb-6 relative overflow-hidden">
-              <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-gradient-to-bl from-[#e8b830]/10 to-transparent" />
-              <div className="absolute -bottom-20 -left-20 w-48 h-48 rounded-full bg-gradient-to-tr from-[#0d4f1a]/5 to-transparent" />
-              <div className="relative">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-lg font-bold text-gray-900">Novo Diagnóstico</h2>
-                  <button onClick={resetModal} className="text-gray-400 hover:text-gray-600 transition-colors"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
-                </div>
-                <div className="space-y-5">
-                  <p className="text-sm text-gray-500 leading-relaxed">Crie um novo diagnóstico e preencha o formulário diretamente no sistema.</p>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Nome do produtor (opcional)</label>
-                    <input className="agro-input py-2.5 px-4 text-sm w-full" value={novoNome} onChange={e => setNovoNome(e.target.value)} placeholder="Nome do produtor para referência" />
-                  </div>
-                  <div className="flex gap-3 pt-1">
-                    <button onClick={resetModal} className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Cancelar</button>
-                    <button onClick={handleCriar} disabled={criando} className="flex-1 agro-button-primary py-2.5 px-4 text-sm flex items-center justify-center gap-2 disabled:opacity-60">
-                      {criando && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.37 0 0 5.37 0 12h4z" /></svg>}
-                      {criando ? "Criando..." : "Criar e preencher"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
