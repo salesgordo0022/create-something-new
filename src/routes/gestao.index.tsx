@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "../lib/auth-context";
-import { getFormulariosCompletos, criarProdutorELink, getCodigoByFormId } from "../lib/form-service";
+import { getFormulariosCompletos, criarProdutorEFormulario } from "../lib/form-service";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/gestao/")({
@@ -41,6 +41,7 @@ function initials(name?: string) {
 
 function GestaoPage() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const router = useRouter();
   const [forms, setForms] = useState<FormComProdutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -49,7 +50,6 @@ function GestaoPage() {
   const [filtroStatus, setFiltroStatus] = useState("");
   const [modalAberto, setModalAberto] = useState(false);
   const [criando, setCriando] = useState(false);
-  const [linkGerado, setLinkGerado] = useState("");
   const [novoNome, setNovoNome] = useState("");
 
   useEffect(() => {
@@ -66,32 +66,19 @@ function GestaoPage() {
   async function handleCriar() {
     setCriando(true);
     try {
-      const result = await criarProdutorELink({ nome_razao: novoNome || "Produtor" });
-      const link = `${window.location.origin}/formulario/${result.codigo}`;
-      setLinkGerado(link);
-      await navigator.clipboard.writeText(link);
-      toast.success("Link copiado!");
-      loadData();
+      const result = await criarProdutorEFormulario({ nome_razao: novoNome || "Produtor" });
+      setModalAberto(false);
+      setNovoNome("");
+      toast.success("Formulário criado!");
+      router.navigate({ to: "/gestao/formulario/$id", params: { id: result.formId } });
     } catch (e: any) {
       toast.error(e.message || "Erro ao criar");
     }
     setCriando(false);
   }
 
-  async function copyLink(formId: string, produtorId: string) {
-    const codigo = await getCodigoByFormId(formId, produtorId);
-    if (codigo) {
-      const link = `${window.location.origin}/formulario/${codigo}`;
-      await navigator.clipboard.writeText(link);
-      toast.success("Link copiado!");
-    } else {
-      toast.error("Link não encontrado");
-    }
-  }
-
   function resetModal() {
     setModalAberto(false);
-    setLinkGerado("");
     setNovoNome("");
   }
 
@@ -310,12 +297,12 @@ function GestaoPage() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center justify-end gap-2">
-                            <button onClick={() => copyLink(f.id, f.produtor_id)} title="Copiar link do formulário"
+                            <Link to="/gestao/formulario/$id" params={{ id: f.id }} title="Preencher formulário"
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#b8942e] bg-[#fef7e6] ring-1 ring-[#e8b830]/20 hover:bg-[#fdf0cf] hover:shadow-sm transition-all">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                              Link
-                            </button>
-                            <Link to={`/gestao/${f.id}`}
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                              Preencher
+                            </Link>
+                            <Link to="/gestao/$id" params={{ id: f.id }}
                               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white shadow-sm hover:shadow-md transition-all" style={{ background: 'linear-gradient(135deg, #0d4f1a, #1a7a2e)' }}>
                               Visualizar
                               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -360,32 +347,20 @@ function GestaoPage() {
                   <h2 className="text-lg font-bold text-gray-900">Novo Diagnóstico</h2>
                   <button onClick={resetModal} className="text-gray-400 hover:text-gray-600 transition-colors"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
-                {linkGerado ? (
-                  <div className="text-center space-y-4 py-2">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#1a7a2e] to-[#0d4f1a] flex items-center justify-center mx-auto shadow-lg shadow-[#0d4f1a]/20">
-                      <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                    </div>
-                    <p className="font-serif font-bold text-gray-900 text-lg">Link gerado com sucesso!</p>
-                    <div className="bg-[#f2efe8] rounded-xl p-4 text-xs text-gray-700 break-all font-mono border border-gray-200/60">{linkGerado}</div>
-                    <p className="text-xs text-gray-500 leading-relaxed">O link foi copiado para sua área de transferência. Envie para o produtor preencher o formulário.</p>
-                    <button onClick={resetModal} className="agro-button-primary px-8 py-2.5 text-sm">Concluir</button>
+                <div className="space-y-5">
+                  <p className="text-sm text-gray-500 leading-relaxed">Crie um novo diagnóstico e preencha o formulário diretamente no sistema.</p>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Nome do produtor (opcional)</label>
+                    <input className="agro-input py-2.5 px-4 text-sm w-full" value={novoNome} onChange={e => setNovoNome(e.target.value)} placeholder="Nome do produtor para referência" />
                   </div>
-                ) : (
-                  <div className="space-y-5">
-                    <p className="text-sm text-gray-500 leading-relaxed">Gere um link para o produtor preencher o formulário de diagnóstico tributário.</p>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Identificação (opcional)</label>
-                      <input className="agro-input py-2.5 px-4 text-sm w-full" value={novoNome} onChange={e => setNovoNome(e.target.value)} placeholder="Nome do produtor para referência" />
-                    </div>
-                    <div className="flex gap-3 pt-1">
-                      <button onClick={resetModal} className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Cancelar</button>
-                      <button onClick={handleCriar} disabled={criando} className="flex-1 agro-button-primary py-2.5 px-4 text-sm flex items-center justify-center gap-2 disabled:opacity-60">
-                        {criando && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.37 0 0 5.37 0 12h4z" /></svg>}
-                        Gerar Link
-                      </button>
-                    </div>
+                  <div className="flex gap-3 pt-1">
+                    <button onClick={resetModal} className="flex-1 py-2.5 px-4 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Cancelar</button>
+                    <button onClick={handleCriar} disabled={criando} className="flex-1 agro-button-primary py-2.5 px-4 text-sm flex items-center justify-center gap-2 disabled:opacity-60">
+                      {criando && <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.37 0 0 5.37 0 12h4z" /></svg>}
+                      {criando ? "Criando..." : "Criar e preencher"}
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>

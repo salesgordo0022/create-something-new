@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as FormularioCodigoRouteImport } from './routes/formulario.$codigo'
 import { Route as GestaoIndexRouteImport } from './routes/gestao.index'
 import { Route as GestaoIdRouteImport } from './routes/gestao.$id'
+import { Route as GestaoFormularioIdRouteImport } from './routes/gestao.formulario.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const GestaoIdRoute = GestaoIdRouteImport.update({
   path: '/gestao/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GestaoFormularioIdRoute = GestaoFormularioIdRouteImport.update({
+  id: '/gestao/formulario/$id',
+  path: '/gestao/formulario/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/formulario/$codigo': typeof FormularioCodigoRoute
   '/gestao/$id': typeof GestaoIdRoute
   '/gestao/': typeof GestaoIndexRoute
+  '/gestao/formulario/$id': typeof GestaoFormularioIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/formulario/$codigo': typeof FormularioCodigoRoute
   '/gestao/$id': typeof GestaoIdRoute
   '/gestao': typeof GestaoIndexRoute
+  '/gestao/formulario/$id': typeof GestaoFormularioIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,12 +70,25 @@ export interface FileRoutesById {
   '/formulario/$codigo': typeof FormularioCodigoRoute
   '/gestao/$id': typeof GestaoIdRoute
   '/gestao/': typeof GestaoIndexRoute
+  '/gestao/formulario/$id': typeof GestaoFormularioIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/formulario/$codigo' | '/gestao/$id' | '/gestao/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/formulario/$codigo'
+    | '/gestao/$id'
+    | '/gestao/'
+    | '/gestao/formulario/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/formulario/$codigo' | '/gestao/$id' | '/gestao'
+  to:
+    | '/'
+    | '/login'
+    | '/formulario/$codigo'
+    | '/gestao/$id'
+    | '/gestao'
+    | '/gestao/formulario/$id'
   id:
     | '__root__'
     | '/'
@@ -75,6 +96,7 @@ export interface FileRouteTypes {
     | '/formulario/$codigo'
     | '/gestao/$id'
     | '/gestao/'
+    | '/gestao/formulario/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -83,6 +105,7 @@ export interface RootRouteChildren {
   FormularioCodigoRoute: typeof FormularioCodigoRoute
   GestaoIdRoute: typeof GestaoIdRoute
   GestaoIndexRoute: typeof GestaoIndexRoute
+  GestaoFormularioIdRoute: typeof GestaoFormularioIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -122,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GestaoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gestao/formulario/$id': {
+      id: '/gestao/formulario/$id'
+      path: '/gestao/formulario/$id'
+      fullPath: '/gestao/formulario/$id'
+      preLoaderRoute: typeof GestaoFormularioIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -131,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   FormularioCodigoRoute: FormularioCodigoRoute,
   GestaoIdRoute: GestaoIdRoute,
   GestaoIndexRoute: GestaoIndexRoute,
+  GestaoFormularioIdRoute: GestaoFormularioIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -62,6 +62,31 @@ export async function getFormularioByCodigo(codigo: string) {
   return { link, produtor: link.produtores, formulario: form, respostas: respostas || [] };
 }
 
+export async function getFormularioById(formularioId: string) {
+  if (isDevMode()) {
+    const found = Object.entries(DEV_FORM_STORE).find(([, v]: any) => v.formId === formularioId);
+    if (!found) return null;
+    const [codigo, stored] = found as any;
+    return {
+      link: { codigo, status: "ativo" },
+      produtor: { nome_razao: stored.nome, cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física" },
+      formulario: { id: stored.formId, produtor_id: "dev", status_preenchimento: stored.status || "em_preenchimento" },
+      respostas: [],
+    };
+  }
+  const { data: form, error } = await supabase
+    .from("formularios")
+    .select("*, produtores(*)")
+    .eq("id", formularioId)
+    .single();
+  if (error || !form) return null;
+  const { data: respostas } = await supabase
+    .from("respostas")
+    .select("*")
+    .eq("formulario_id", form.id);
+  return { produtor: form.produtores, formulario: form, respostas: respostas || [] };
+}
+
 export async function salvarResposta(formularioId: string, etapa: number, campo: string, valor: any) {
   if (isDevMode()) return;
   const { data: existing } = await supabase
@@ -179,6 +204,35 @@ export async function criarProdutorELink(dados: ProdutorInput) {
   if (errForm) throw errForm;
 
   return { formId: form.id, codigo, nome: dados.nome_razao };
+}
+
+export async function criarProdutorEFormulario(dados: ProdutorInput) {
+  if (isDevMode()) {
+    const formId = `dev-form-${Date.now()}`;
+    const codigo = `AGRO-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    DEV_FORM_STORE[codigo] = { formId, codigo, nome: dados.nome_razao || "Produtor", status: "cadastro_criado", percentual: 0 };
+    return { formId, nome: dados.nome_razao || "Produtor" };
+  }
+
+  const { data: produtor, error: errProd } = await supabase
+    .from("produtores")
+    .insert({
+      nome_razao: dados.nome_razao, cpf_cnpj: dados.cpf_cnpj, email: dados.email,
+      telefone: dados.telefone, municipio: dados.municipio, estado: dados.estado,
+      atividade_principal: dados.atividade_principal, tipo: dados.tipo || "Pessoa Física",
+    })
+    .select()
+    .single();
+  if (errProd) throw errProd;
+
+  const { data: form, error: errForm } = await supabase
+    .from("formularios")
+    .insert({ produtor_id: produtor.id, status_preenchimento: "cadastro_criado" })
+    .select()
+    .single();
+  if (errForm) throw errForm;
+
+  return { formId: form.id, nome: dados.nome_razao };
 }
 
 export async function getEstatisticas() {
