@@ -351,7 +351,7 @@ function ProdutorPage() {
     setExportandoPDF(true);
     try {
       const { gerarPDF } = await import("../lib/pdf-service");
-      gerarPDF({ produtor, formulario, respostas: respMap, diagnostico });
+      gerarPDF({ produtor, formulario, respostas: respMap, diagnostico, acoes, oportunidades, pendencias, observacoes });
       toast.success("PDF gerado");
     } catch {
       toast.error("Erro ao gerar PDF");
