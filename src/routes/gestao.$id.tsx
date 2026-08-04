@@ -483,7 +483,7 @@ function ProdutorPage() {
                       </div>
                       <span className="text-xs text-gray-400">{preenchidos}/{sec.campos.length}</span>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div className="hidden md:block overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="bg-gray-50/80">
@@ -514,6 +514,30 @@ function ProdutorPage() {
                         </tbody>
                       </table>
                     </div>
+                    <div className="md:hidden divide-y divide-gray-50">
+                      {camposFiltrados.map(c => {
+                        const valor = formatValor(respMap[c.campo], c.format);
+                        return (
+                          <div key={c.campo} className="px-5 py-3 flex items-start justify-between gap-4">
+                            <p className="text-sm text-gray-500">{highlightText(c.label, termoBusca)}</p>
+                            <div className="text-right shrink-0 max-w-[55%]">
+                              {valor ? (
+                                isSimNao(respMap[c.campo]) ? (
+                                  <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${getBadgeColor(String(respMap[c.campo]))}`}>{highlightText(valor, termoBusca)}</span>
+                                ) : (
+                                  <span className="text-sm font-semibold text-gray-800 break-words">{highlightText(valor, termoBusca)}</span>
+                                )
+                              ) : (
+                                <span className="text-xs text-gray-300 italic">Não respondido</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {camposFiltrados.length === 0 && (
+                        <div className="px-5 py-8 text-center text-sm text-gray-400 italic">Nenhuma resposta nesta seção.</div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -531,34 +555,53 @@ function ProdutorPage() {
                   <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide bg-gray-50 px-3 py-1 rounded-full">Banco de dados</span>
                 </div>
                 {documentos.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-gray-50/80">
-                          <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Categoria</th>
-                          <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Arquivo</th>
-                          <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                          <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Recebido em</th>
-                          <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {documentos.map((d: any, i: number) => (
-                          <tr key={d.id} className={`${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} border-t border-gray-50`}>
-                            <td className="px-5 py-3 font-medium text-gray-700">{d.categoria || "—"}</td>
-                            <td className="px-5 py-3 text-gray-800">{d.nome_arquivo}</td>
-                            <td className="px-5 py-3">{badge(d.status, STATUS_DOCUMENTO)}</td>
-                            <td className="px-5 py-3 text-gray-500">{formatData(d.created_at)}</td>
-                            <td className="px-5 py-3">
-                              {d.url && (
-                                <a href={d.url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-[#1a5c2a] hover:underline">Abrir arquivo</a>
-                              )}
-                            </td>
+                  <>
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-gray-50/80">
+                            <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Categoria</th>
+                            <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Arquivo</th>
+                            <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                            <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Recebido em</th>
+                            <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Ações</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {documentos.map((d: any, i: number) => (
+                            <tr key={d.id} className={`${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'} border-t border-gray-50`}>
+                              <td className="px-5 py-3 font-medium text-gray-700">{d.categoria || "—"}</td>
+                              <td className="px-5 py-3 text-gray-800">{d.nome_arquivo}</td>
+                              <td className="px-5 py-3">{badge(d.status, STATUS_DOCUMENTO)}</td>
+                              <td className="px-5 py-3 text-gray-500">{formatData(d.created_at)}</td>
+                              <td className="px-5 py-3">
+                                {d.url && (
+                                  <a href={d.url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-[#1a5c2a] hover:underline">Abrir arquivo</a>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="md:hidden divide-y divide-gray-50">
+                      {documentos.map((d: any) => (
+                        <div key={d.id} className="px-5 py-4 space-y-2">
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="text-sm font-semibold text-gray-800">{d.categoria || "Documento"}</p>
+                            {badge(d.status, STATUS_DOCUMENTO)}
+                          </div>
+                          <p className="text-xs text-gray-500 break-all">{d.nome_arquivo}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-400">{formatData(d.created_at)}</span>
+                            {d.url && (
+                              <a href={d.url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-[#1a5c2a] hover:underline">Abrir arquivo →</a>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 ) : (
                   <div className="px-5 py-12 text-center">
                     <div className="w-14 h-14 mx-auto rounded-2xl bg-[#f2efe8] flex items-center justify-center mb-3">

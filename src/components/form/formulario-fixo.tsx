@@ -344,9 +344,9 @@ export function FormularioFixo({ formularioId }: { formularioId: string }) {
             </svg>
             Voltar à gestão
           </Link>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/12 backdrop-blur-md flex items-center justify-center border border-white/15">
+              <div className="w-12 h-12 rounded-2xl bg-white/12 backdrop-blur-md flex items-center justify-center border border-white/15 shrink-0">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -356,14 +356,14 @@ export function FormularioFixo({ formularioId }: { formularioId: string }) {
                   />
                 </svg>
               </div>
-              <div>
-                <h1 className="text-lg lg:text-xl font-bold tracking-tight">
+              <div className="min-w-0">
+                <h1 className="text-lg lg:text-xl font-bold tracking-tight leading-tight">
                   Diagnóstico Tributário do Agronegócio
                 </h1>
-                {produtor && <p className="text-white/60 text-sm mt-0.5">{produtor.nome_razao}</p>}
+                {produtor && <p className="text-white/60 text-sm mt-0.5 truncate">{produtor.nome_razao}</p>}
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs text-white/60">
+            <div className="flex items-center gap-2 text-xs text-white/60 self-start sm:self-center">
               <span>{salvando ? "Salvando..." : "Salvo"}</span>
               {salvando && (
                 <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -390,7 +390,7 @@ export function FormularioFixo({ formularioId }: { formularioId: string }) {
 
       <div className="max-w-4xl mx-auto px-4 lg:px-6 py-8 lg:py-10">
         <div className="bg-white rounded-2xl agro-shadow-lg border border-gray-100 p-6 lg:p-8 mb-8">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
             <div>
               <span
                 className="text-xs font-bold tracking-widest uppercase"
@@ -400,7 +400,7 @@ export function FormularioFixo({ formularioId }: { formularioId: string }) {
               </span>
               <span className="text-xs text-gray-400 ml-3">— {progresso}% concluído</span>
             </div>
-            <span className="text-sm text-gray-600 font-medium">
+            <span className="text-sm text-gray-600 font-medium sm:text-right">
               {etapa.icone} {etapa.nome}
             </span>
           </div>
@@ -438,12 +438,12 @@ export function FormularioFixo({ formularioId }: { formularioId: string }) {
           {etapaAtual === 7 && <Etapa7 respostas={respostas} updateField={updateField} />}
         </div>
 
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex gap-3">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex gap-3 w-full sm:w-auto">
             {etapaAtual > 1 && (
               <button
                 onClick={() => setEtapaAtual((prev) => prev - 1)}
-                className="agro-button bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-6 py-3"
+                className="agro-button bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-6 py-3 flex-1 sm:flex-initial justify-center"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -461,7 +461,7 @@ export function FormularioFixo({ formularioId }: { formularioId: string }) {
                 autoSave();
                 toast.success("Salvo com sucesso!");
               }}
-              className="agro-button border border-gray-200 text-gray-600 hover:bg-gray-50 px-6 py-3"
+              className="agro-button border border-gray-200 text-gray-600 hover:bg-gray-50 px-6 py-3 flex-1 sm:flex-initial justify-center"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -478,7 +478,7 @@ export function FormularioFixo({ formularioId }: { formularioId: string }) {
             <button
               onClick={salvarEContinuar}
               disabled={salvando}
-              className="agro-button-primary px-10 py-3 disabled:opacity-50 text-base"
+              className="agro-button-primary px-10 py-3 disabled:opacity-50 text-base w-full sm:w-auto"
             >
               {salvando ? "Salvando..." : "Salvar e continuar"}
               {!salvando && (
@@ -496,7 +496,7 @@ export function FormularioFixo({ formularioId }: { formularioId: string }) {
             <button
               onClick={handleEnviar}
               disabled={enviando || !respostas.etapa7_consentimento}
-              className="agro-button-gold px-10 py-3 disabled:opacity-50 text-base"
+              className="agro-button-gold px-10 py-3 disabled:opacity-50 text-base w-full sm:w-auto"
             >
               {enviando ? "Enviando..." : "Enviar formulário"}
               {!enviando && (
