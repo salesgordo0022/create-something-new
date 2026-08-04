@@ -2,6 +2,7 @@ import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "../lib/auth-context";
 import { getFormulariosCompletos, criarProdutorEFormulario } from "../lib/form-service";
+import { exportCSV } from "../lib/form-secoes";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/gestao/")({
@@ -80,6 +81,29 @@ function GestaoPage() {
   function resetModal() {
     setModalAberto(false);
     setNovoNome("");
+  }
+
+  function exportarCSV() {
+    const linhas = forms.map(f => {
+      const st = statusInfo(f.status_preenchimento);
+      return {
+        "Produtor": f.produtores?.nome_razao || "",
+        "CPF / CNPJ": f.produtores?.cpf_cnpj || "",
+        "Município / UF": `${f.produtores?.municipio || ""}/${f.produtores?.estado || ""}`,
+        "Atividade": f.produtores?.atividade_principal || "",
+        "Tipo": f.produtores?.tipo || "",
+        "Status": st.label,
+        "Preenchimento (%)": f.percentual_preenchido ?? 0,
+        "Protocolo": f.protocolo || "",
+        "Data de envio": f.data_envio ? new Date(f.data_envio).toLocaleString("pt-BR") : "",
+      };
+    });
+    if (linhas.length === 0) {
+      toast.error("Não há registros para exportar");
+      return;
+    }
+    exportCSV(linhas, `produtores-${new Date().toISOString().substring(0, 10)}.csv`);
+    toast.success("CSV exportado");
   }
 
   if (authLoading || loading) return (
@@ -170,6 +194,10 @@ function GestaoPage() {
               <input className="w-64 lg:w-72 rounded-xl border border-gray-200 bg-gray-50/80 py-2 pl-10 pr-4 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1a5c2a]/20 focus:border-[#1a5c2a] focus:bg-white transition-all" placeholder="Buscar produtor..." value={filtroNome} onChange={e => setFiltroNome(e.target.value)} />
               <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
+            <button onClick={exportarCSV} title="Exportar CSV de todos os produtores" className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-gray-700 bg-white ring-1 ring-gray-200 hover:bg-gray-50 shadow-sm transition-all">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              CSV
+            </button>
             <button onClick={() => setModalAberto(true)} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#0d4f1a] shadow-md shadow-amber-500/20 hover:shadow-lg transition-all" style={{ background: 'linear-gradient(135deg, #e8b830, #d4a017)' }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               Novo Diagnóstico

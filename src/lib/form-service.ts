@@ -12,6 +12,14 @@ function isDevMode() {
   return url === "" || url === "https://seu-projeto.supabase.co";
 }
 
+function findDevEntry(formularioId: string) {
+  return Object.values(DEV_FORM_STORE).find((v: any) => v.formId === formularioId);
+}
+
+function devRespostasArray(entry: any) {
+  return Object.entries(entry?.respostas || {}).map(([campo, valor]) => ({ campo, valor }));
+}
+
 export async function getFormularioByCodigo(codigo: string) {
   if (isDevMode()) {
     const stored = DEV_FORM_STORE[codigo];
@@ -64,14 +72,13 @@ export async function getFormularioByCodigo(codigo: string) {
 
 export async function getFormularioById(formularioId: string) {
   if (isDevMode()) {
-    const found = Object.entries(DEV_FORM_STORE).find(([, v]: any) => v.formId === formularioId);
-    if (!found) return null;
-    const [codigo, stored] = found as any;
+    const stored = findDevEntry(formularioId);
+    if (!stored) return null;
     return {
-      link: { codigo, status: "ativo" },
+      link: { codigo: stored.codigo, status: "ativo" },
       produtor: { nome_razao: stored.nome, cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física" },
-      formulario: { id: stored.formId, produtor_id: "dev", status_preenchimento: stored.status || "em_preenchimento" },
-      respostas: [],
+      formulario: { id: stored.formId, produtor_id: "dev", status_preenchimento: stored.status || "em_preenchimento", percentual_preenchido: stored.percentual || 0, protocolo: stored.protocolo || null, data_envio: stored.data_envio || null },
+      respostas: devRespostasArray(stored),
     };
   }
   const { data: form, error } = await supabase
@@ -88,7 +95,17 @@ export async function getFormularioById(formularioId: string) {
 }
 
 export async function salvarResposta(formularioId: string, etapa: number, campo: string, valor: any) {
-  if (isDevMode()) return;
+  if (isDevMode()) {
+    const entry = findDevEntry(formularioId);
+    if (entry) {
+      entry.respostas = entry.respostas || {};
+      entry.respostas[campo] = valor;
+      const totalCampos = 46;
+      const preenchidos = Object.values(entry.respostas).filter((v) => v !== "" && v !== null && v !== undefined && v !== false).length;
+      entry.percentual = Math.min(100, Math.round((preenchidos / totalCampos) * 100));
+    }
+    return;
+  }
   const { data: existing } = await supabase
     .from("respostas")
     .select("id")
@@ -116,7 +133,16 @@ export async function getRespostas(formularioId: string) {
 
 export async function enviarFormulario(formularioId: string) {
   const protocolo = `PROT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-  if (isDevMode()) return protocolo;
+  if (isDevMode()) {
+    const entry = findDevEntry(formularioId);
+    if (entry) {
+      entry.status = "formulario_enviado";
+      entry.percentual = 100;
+      entry.protocolo = protocolo;
+      entry.data_envio = new Date().toISOString();
+    }
+    return protocolo;
+  }
   const { error } = await supabase
     .from("formularios")
     .update({ status_preenchimento: "formulario_enviado", percentual_preenchido: 100, data_envio: new Date().toISOString(), protocolo })
@@ -167,6 +193,156 @@ export async function getCodigoByFormId(formId: string, _produtorId: string) {
   if (!form) return null;
   const { data: link } = await supabase.from("links_formulario").select("codigo").eq("id", form.link_id).single();
   return link?.codigo || null;
+}
+
+export async function getFormularioCompletoById(formularioId: string) {
+  if (isDevMode()) {
+    const stored = findDevEntry(formularioId);
+    if (!stored) return null;
+    return {
+      produtor: { nome_razao: stored.nome, cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "" },
+      formulario: {
+        id: stored.formId, produtor_id: "dev", status_preenchimento: stored.status || "em_preenchimento",
+        status_diagnostico: stored.status_diagnostico || "pendente", percentual_preenchido: stored.percentual || 0,
+        protocolo: stored.protocolo || null, data_envio: stored.data_envio || null,
+      },
+      respostas: devRespostasArray(stored),
+      diagnostico: stored.diagnostico || null,
+      acoes: stored.acoes || [],
+      oportunidades: stored.oportunidades || [],
+      pendencias: stored.pendencias || [],
+      observacoes: stored.observacoes || [],
+      historico: stored.historico || [],
+      documentos: stored.documentos || [],
+    };
+  }
+
+  const { data: form, error } = await supabase
+    .from("formularios")
+    .select("*, produtores(*)")
+    .eq("id", formularioId)
+    .single();
+  if (error || !form) return null;
+
+  const [{ data: respostas }, { data: diagnostico }, { data: acoes }, { data: oportunidades }, { data: pendencias }, { data: observacoes }, { data: historico }, { data: documentos }] =
+    await Promise.all([
+      supabase.from("respostas").select("*").eq("formulario_id", form.id),
+      supabase.from("diagnosticos").select("*").eq("formulario_id", form.id).maybeSingle(),
+      supabase.from("acoes_prioritarias").select("*").eq("diagnostico_id", (await supabase.from("diagnosticos").select("id").eq("formulario_id", form.id).maybeSingle()).data?.id),
+      supabase.from("oportunidades_servicos").select("*").eq("diagnostico_id", (await supabase.from("diagnosticos").select("id").eq("formulario_id", form.id).maybeSingle()).data?.id),
+      supabase.from("pendencias").select("*").eq("formulario_id", form.id).order("created_at", { ascending: false }),
+      supabase.from("observacoes").select("*, usuarios(nome, cargo)").eq("formulario_id", form.id).order("created_at", { ascending: false }),
+      supabase.from("historico").select("*, usuarios(nome)").eq("formulario_id", form.id).order("created_at", { ascending: false }),
+      supabase.from("documentos").select("*").eq("formulario_id", form.id).order("created_at", { ascending: false }),
+    ]);
+
+  return {
+    produtor: form.produtores,
+    formulario: form,
+    respostas: respostas || [],
+    diagnostico: diagnostico || null,
+    acoes: acoes || [],
+    oportunidades: oportunidades || [],
+    pendencias: pendencias || [],
+    observacoes: observacoes || [],
+    historico: historico || [],
+    documentos: documentos || [],
+  };
+}
+
+export async function salvarDiagnosticoCompleto(
+  formularioId: string,
+  dados: Record<string, any>,
+  acoes: { descricao: string; prazo?: string; concluida?: boolean }[],
+  oportunidades: { descricao: string; prioridade?: string }[]
+) {
+  if (isDevMode()) {
+    const entry = findDevEntry(formularioId);
+    if (entry) {
+      entry.diagnostico = { ...(entry.diagnostico || {}), ...dados };
+      entry.acoes = acoes.map((a) => ({ id: `dev-acao-${Date.now()}-${Math.random()}`, ...a }));
+      entry.oportunidades = oportunidades.map((o) => ({ id: `dev-op-${Date.now()}-${Math.random()}`, ...o }));
+      entry.status_diagnostico = "concluido";
+    }
+    return;
+  }
+
+  const { data: existente } = await supabase
+    .from("diagnosticos")
+    .select("id")
+    .eq("formulario_id", formularioId)
+    .maybeSingle();
+
+  let diagnosticoId: string;
+  if (existente) {
+    const { data, error } = await supabase
+      .from("diagnosticos")
+      .update(dados)
+      .eq("id", existente.id)
+      .select()
+      .single();
+    if (error) throw error;
+    diagnosticoId = data.id;
+  } else {
+    const { data, error } = await supabase
+      .from("diagnosticos")
+      .insert({ formulario_id: formularioId, ...dados })
+      .select()
+      .single();
+    if (error) throw error;
+    diagnosticoId = data.id;
+  }
+
+  await supabase.from("acoes_prioritarias").delete().eq("diagnostico_id", diagnosticoId);
+  if (acoes.length > 0) {
+    await supabase.from("acoes_prioritarias").insert(
+      acoes.map((a) => ({ diagnostico_id: diagnosticoId, descricao: a.descricao, prazo: a.prazo || null, concluida: a.concluida || false }))
+    );
+  }
+
+  await supabase.from("oportunidades_servicos").delete().eq("diagnostico_id", diagnosticoId);
+  if (oportunidades.length > 0) {
+    await supabase.from("oportunidades_servicos").insert(
+      oportunidades.map((o) => ({ diagnostico_id: diagnosticoId, descricao: o.descricao, prioridade: o.prioridade || "media" }))
+    );
+  }
+
+  await supabase.from("formularios").update({ status_diagnostico: "concluido" }).eq("id", formularioId);
+}
+
+export async function salvarObservacao(formularioId: string, autorId: string | undefined, texto: string, categoria?: string, importante?: boolean) {
+  if (isDevMode()) {
+    const entry = findDevEntry(formularioId);
+    if (entry) {
+      entry.observacoes = entry.observacoes || [];
+      entry.observacoes.unshift({ id: `dev-obs-${Date.now()}`, texto, categoria, importante: importante || false, created_at: new Date().toISOString() });
+    }
+    return;
+  }
+  await supabase.from("observacoes").insert({ formulario_id: formularioId, autor_id: autorId || null, texto, categoria: categoria || null, importante: importante || false });
+}
+
+export async function adicionarPendencia(formularioId: string, descricao: string, tipo: string) {
+  if (isDevMode()) {
+    const entry = findDevEntry(formularioId);
+    if (entry) {
+      entry.pendencias = entry.pendencias || [];
+      entry.pendencias.unshift({ id: `dev-pen-${Date.now()}`, descricao, tipo, resolvida: false, created_at: new Date().toISOString() });
+    }
+    return;
+  }
+  await supabase.from("pendencias").insert({ formulario_id: formularioId, descricao, tipo });
+}
+
+export async function resolverPendencia(pendenciaId: string) {
+  if (isDevMode()) {
+    for (const entry of Object.values(DEV_FORM_STORE) as any[]) {
+      const p = (entry.pendencias || []).find((x: any) => x.id === pendenciaId);
+      if (p) { p.resolvida = true; return; }
+    }
+    return;
+  }
+  await supabase.from("pendencias").update({ resolvida: true }).eq("id", pendenciaId);
 }
 
 export async function criarProdutorELink(dados: ProdutorInput) {
