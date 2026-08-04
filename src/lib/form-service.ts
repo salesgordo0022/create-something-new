@@ -5,7 +5,122 @@ interface ProdutorInput {
   municipio?: string; estado?: string; atividade_principal?: string; tipo?: string;
 }
 
-const DEV_FORM_STORE: Record<string, any> = {};
+const DEV_SEED: Record<string, any> = {
+  "AGRO-DEMO-0001": {
+    formId: "dev-form-demo",
+    codigo: "AGRO-DEMO-0001",
+    nome: "Fazenda Santa Fé Agro Ltda",
+    cpf_cnpj: "12.345.678/0001-90",
+    tipo: "Pessoa Jurídica",
+    atividade_principal: "Soja",
+    municipio: "Sorriso",
+    estado: "MT",
+    telefone: "(66) 99999-1234",
+    email: "contato@santafe.agr.br",
+    status: "diagnostico_concluido",
+    status_diagnostico: "concluido",
+    percentual: 100,
+    protocolo: "PROT-0001",
+    data_envio: "2026-07-15T14:30:00.000Z",
+    respostas: {
+      etapa1_nome: "Fazenda Santa Fé Agro Ltda",
+      etapa1_cpf_cnpj: "12.345.678/0001-90",
+      etapa1_tipo: "Pessoa Jurídica",
+      etapa1_atividade: "Soja",
+      etapa1_atividade_outra: "Milho (safrinha)",
+      etapa1_estados_operacao: "MT, PA",
+      etapa1_estados_opera_detalhe: "Matriz em Sorriso/MT e área arrendada em Novo Progresso/PA",
+      etapa1_mult_estados: true,
+      etapa1_possui_ie: true,
+      etapa1_ie_numero: "001.234.567-8",
+      etapa1_possui_caepf: false,
+      etapa1_caepf_numero: "",
+      etapa2_receita_2024: 4200000,
+      etapa2_exportacao_2024: 1150000,
+      etapa2_receita_2026: 5800000,
+      etapa2_exportacao_2026: 2300000,
+      etapa2_receitas_nao_rurais: false,
+      etapa2_atividades_nao_rurais: "",
+      etapa3_vende_para: "Trading/exportadora",
+      etapa3_exporta: true,
+      etapa3_vende_trading: true,
+      etapa3_integrado: false,
+      etapa3_integrador_nome: "",
+      etapa3_cooperativa: false,
+      etapa3_cooperativa_nome: "",
+      etapa3_nao_contribuintes: false,
+      etapa3_insumos: "Sementes, defensivos e fertilizantes",
+      etapa3_fornecedores: "Cooperativa regional e revendas multinacionais",
+      etapa3_maquinas: true,
+      etapa3_freq_aquisicoes: "A cada safra",
+      etapa4_emite_nfe: true,
+      etapa4_software_fiscal: "ERP terceirizado",
+      etapa4_escrituracao: "Escrituração completa",
+      etapa4_funrural: true,
+      etapa4_funrural_modalidade: "3,05% sobre a receita",
+      etapa4_fundo_estadual: true,
+      etapa4_fundo_estado: "MT (FETHAB)",
+      etapa4_gestao_financeira: true,
+      etapa4_outras_atividades: false,
+      etapa4_debitos: false,
+      etapa4_parcelamentos: false,
+      etapa4_certidoes: true,
+      etapa5_imovel_proprio: true,
+      etapa5_hectares_proprios: 1250,
+      etapa5_arrendada: true,
+      etapa5_hectares_arrendados: 640,
+      etapa5_holding: false,
+      etapa5_holding_descricao: "",
+      etapa5_socios: false,
+      etapa5_seguro: true,
+      etapa5_financiamentos: true,
+      etapa5_contratos: true,
+      etapa5_sucessorio: false,
+      etapa7_consentimento: true,
+      etapa7_informacoes_verdadeiras: true,
+      etapa7_aceite_privacidade: true,
+    },
+    diagnostico: {
+      enquadramento_ibs_cbs: "Contribuinte obrigatório",
+      nivel_risco: "Médio",
+      justificativa_enquadramento: "Receita bruta anual superior ao limite de R$ 3,6 milhões, enquadrando-se como contribuinte obrigatório do IBS/CBS. Operações interestaduais de venda para trading demandam atenção à retenção e distribuição dos tributos.",
+      parecer_conclusivo: "Produtor enquadrado como contribuinte obrigatório do IBS/CBS. Recomenda-se estruturação de créditos fiscais sobre insumos, revisão das operações interestaduais e planejamento sucessório do patrimônio rural.",
+      proxima_acao: "Apresentar parecer ao produtor e coletar notas fiscais de 2024-2026 para apuração de créditos.",
+      data_diagnostico: "2026-07-22T10:00:00.000Z",
+      data_prevista_retorno: "2026-08-15T00:00:00.000Z",
+    },
+    acoes: [
+      { id: "dev-a1", descricao: "Levantar notas fiscais de compra de insumos (2024-2026)", prazo: "2026-08-15", concluida: true },
+      { id: "dev-a2", descricao: "Analisar créditos de IBS/CBS sobre operações com trading", prazo: "2026-08-30", concluida: false },
+      { id: "dev-a3", descricao: "Estruturar planejamento sucessório do imóvel rural", prazo: "2026-09-30", concluida: false },
+    ],
+    oportunidades: [
+      { id: "dev-op1", descricao: "Recuperação de créditos tributários sobre insumos adquiridos", prioridade: "alta" },
+      { id: "dev-op2", descricao: "Planejamento sucessório e constituição de holding", prioridade: "media" },
+      { id: "dev-op3", descricao: "Gestão de ICMS-ST em aquisições interestaduais", prioridade: "baixa" },
+    ],
+    observacoes: [
+      { id: "dev-o1", texto: "Produtor relatou que a venda da safra 2026 para trading foi antecipada; acompanhar emissão das notas.", categoria: "Comercial", importante: true, created_at: "2026-07-20T16:45:00.000Z" },
+      { id: "dev-o2", texto: "Reunião de apresentação do parecer agendada para o dia 30/07.", categoria: "Reunião", importante: false, created_at: "2026-07-24T11:20:00.000Z" },
+    ],
+    pendencias: [
+      { id: "dev-p1", descricao: "Aguardando envio do LCDPR 2025 pelo produtor", tipo: "documento", resolvida: false, created_at: "2026-07-24T09:10:00.000Z" },
+      { id: "dev-p2", descricao: "Validar certidões negativas estaduais (MT e PA)", tipo: "informacao", resolvida: true, created_at: "2026-07-21T15:00:00.000Z" },
+    ],
+    historico: [
+      { id: "dev-h1", acao: "Formulário enviado", descricao: "Produtor submeteu o formulário com 100% de preenchimento.", created_at: "2026-07-15T14:32:00.000Z" },
+      { id: "dev-h2", acao: "Diagnóstico concluído", descricao: "Classificação finalizada: contribuinte obrigatório, risco médio.", created_at: "2026-07-22T10:15:00.000Z" },
+      { id: "dev-h3", acao: "Documentos recebidos", descricao: "Cartão do CNPJ e ITR anexados ao processo.", created_at: "2026-07-24T09:05:00.000Z" },
+    ],
+    documentos: [
+      { id: "dev-d1", categoria: "Cartão do CNPJ", nome_arquivo: "cartao-cnpj-santa-fe.pdf", status: "aprovado", url: "", created_at: "2026-07-24T09:05:00.000Z" },
+      { id: "dev-d2", categoria: "ITR", nome_arquivo: "itr-2026-sorriso.pdf", status: "em_analise", url: "", created_at: "2026-07-24T09:06:00.000Z" },
+      { id: "dev-d3", categoria: "LCDPR", nome_arquivo: "lcdpr-2025.xlsx", status: "pendente", url: "", created_at: "2026-07-24T09:07:00.000Z" },
+    ],
+  },
+};
+
+const DEV_FORM_STORE: Record<string, any> = { ...DEV_SEED };
 
 function isDevMode() {
   const url = import.meta.env.VITE_SUPABASE_URL || "";
@@ -14,6 +129,17 @@ function isDevMode() {
 
 function findDevEntry(formularioId: string) {
   return Object.values(DEV_FORM_STORE).find((v: any) => v.formId === formularioId);
+}
+
+function devProdutor(entry: any) {
+  return {
+    nome_razao: entry?.nome || "Produtor",
+    cpf_cnpj: entry?.cpf_cnpj || "",
+    municipio: entry?.municipio || "",
+    estado: entry?.estado || "",
+    atividade_principal: entry?.atividade_principal || "",
+    tipo: entry?.tipo || "Pessoa Física",
+  };
 }
 
 function devRespostasArray(entry: any) {
@@ -26,14 +152,14 @@ export async function getFormularioByCodigo(codigo: string) {
     if (stored) {
       return {
         link: { codigo, status: "ativo" },
-        produtor: { nome_razao: stored.nome, cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física" },
+        produtor: devProdutor(stored),
         formulario: { id: stored.formId, produtor_id: "dev", status_preenchimento: "em_preenchimento" },
         respostas: [],
       };
     }
     return {
       link: { codigo, status: "ativo" },
-      produtor: { nome_razao: "Produtor", cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física" },
+      produtor: devProdutor(null),
       formulario: { id: `dev-form-${codigo}`, produtor_id: "dev", status_preenchimento: "em_preenchimento" },
       respostas: [],
     };
@@ -76,7 +202,7 @@ export async function getFormularioById(formularioId: string) {
     if (!stored) return null;
     return {
       link: { codigo: stored.codigo, status: "ativo" },
-      produtor: { nome_razao: stored.nome, cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "Pessoa Física" },
+      produtor: devProdutor(stored),
       formulario: { id: stored.formId, produtor_id: "dev", status_preenchimento: stored.status || "em_preenchimento", percentual_preenchido: stored.percentual || 0, protocolo: stored.protocolo || null, data_envio: stored.data_envio || null },
       respostas: devRespostasArray(stored),
     };
@@ -170,11 +296,11 @@ export async function getFormulariosCompletos() {
       produtor_id: "dev",
       link_id: `dev-link-${f.codigo}`,
       status_preenchimento: f.status || "cadastro_criado",
-      status_diagnostico: "pendente",
+      status_diagnostico: f.status_diagnostico || "pendente",
       percentual_preenchido: f.percentual || 0,
-      protocolo: null,
-      data_envio: null,
-      produtores: { nome_razao: f.nome, cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "" },
+      protocolo: f.protocolo || null,
+      data_envio: f.data_envio || null,
+      produtores: devProdutor(f),
     }));
   }
   const { data } = await supabase
@@ -200,7 +326,7 @@ export async function getFormularioCompletoById(formularioId: string) {
     const stored = findDevEntry(formularioId);
     if (!stored) return null;
     return {
-      produtor: { nome_razao: stored.nome, cpf_cnpj: "", municipio: "", estado: "", atividade_principal: "", tipo: "" },
+      produtor: devProdutor(stored),
       formulario: {
         id: stored.formId, produtor_id: "dev", status_preenchimento: stored.status || "em_preenchimento",
         status_diagnostico: stored.status_diagnostico || "pendente", percentual_preenchido: stored.percentual || 0,
@@ -350,7 +476,12 @@ export async function criarProdutorELink(dados: ProdutorInput) {
 
   if (isDevMode()) {
     const formId = `dev-form-${Date.now()}`;
-    DEV_FORM_STORE[codigo] = { formId, codigo, nome: dados.nome_razao || "Produtor", status: "cadastro_criado", percentual: 0 };
+    DEV_FORM_STORE[codigo] = {
+      formId, codigo, nome: dados.nome_razao || "Produtor",
+      cpf_cnpj: dados.cpf_cnpj || "", municipio: dados.municipio || "", estado: dados.estado || "",
+      atividade_principal: dados.atividade_principal || "", tipo: dados.tipo || "Pessoa Física",
+      status: "cadastro_criado", percentual: 0,
+    };
     return { formId, codigo, nome: dados.nome_razao || "Produtor" };
   }
 
@@ -386,7 +517,12 @@ export async function criarProdutorEFormulario(dados: ProdutorInput) {
   if (isDevMode()) {
     const formId = `dev-form-${Date.now()}`;
     const codigo = `AGRO-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-    DEV_FORM_STORE[codigo] = { formId, codigo, nome: dados.nome_razao || "Produtor", status: "cadastro_criado", percentual: 0 };
+    DEV_FORM_STORE[codigo] = {
+      formId, codigo, nome: dados.nome_razao || "Produtor",
+      cpf_cnpj: dados.cpf_cnpj || "", municipio: dados.municipio || "", estado: dados.estado || "",
+      atividade_principal: dados.atividade_principal || "", tipo: dados.tipo || "Pessoa Física",
+      status: "cadastro_criado", percentual: 0,
+    };
     return { formId, nome: dados.nome_razao || "Produtor" };
   }
 
